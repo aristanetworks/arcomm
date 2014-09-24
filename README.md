@@ -7,7 +7,7 @@ utility
 Installation
 ------------
 
-    pip install git+ssh://git@github.com/aristanetworks/arcomm.git
+    pip install git+https://github.com/aristanetworks/arcomm.git
 
 or
 
