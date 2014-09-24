@@ -7,6 +7,12 @@ utility
 Installation
 ------------
 
+    pip install git+ssh://git@github.com/aristanetworks/arcomm.git
+
+or
+
+    git clone git@github.com:aristanetworks/arcomm.git
+    cd arcomm
     python setup.py install
 
 Console Usage
