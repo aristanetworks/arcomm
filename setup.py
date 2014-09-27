@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Copyright (c) 2013 Arista Networks, Inc.  All rights reserved.
+Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
 Arista Networks, Inc. Confidential and Proprietary.
 """
 
@@ -24,16 +24,21 @@ setup(
     description = "Library for controlling to Arista switches",
     long_description = readme,
     classifiers = [
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Arista Test Engineers",
-        "License :: Other/Proprietary License",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.7",
-        "Environment :: Network Automation"
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Testing",
+        "Topic :: Terminals"
     ],
     packages = find_packages(),
     url = "https://github.com/aristanetworks/arcomm",
-    license = "Proprietary",
+    download_url = "https://github.com/aristanetworks/arcomm/archive/v1.0.0.tar.gz"
+    license = "MIT",
     install_requires = ["jsonrpclib", "paramiko"],
     entry_points = {
         'console_scripts': [

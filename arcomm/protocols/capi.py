@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2013 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-"""
-Protocol adapter for CAPI aka eAPI aka JSON-RPC
-"""
+"""Protocol adapter for CAPI aka eAPI aka JSON-RPC"""
+
 import jsonrpclib
 import socket
 from ..command import Command

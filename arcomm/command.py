@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-"""
-Command module.  stores command and any prompts or answers it may require
-"""
+"""Command module.  stores command and any prompts or answers it may require"""
+
 import collections
 from .util import to_list
 

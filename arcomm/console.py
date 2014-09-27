@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-"""
-Command line interface for arcomm
-"""
+"""Command line interface for arcomm"""
+
 import json
 import sys
 from .api import connect, execute, execute_pool, get_credentials

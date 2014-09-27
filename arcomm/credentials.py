@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
+"""Credentials module for holding username, password, keys, and enable
+passwords
 """
-Credentials module for holding username, password, keys, and enable passwords
-"""
+
 import collections
 import getpass
 

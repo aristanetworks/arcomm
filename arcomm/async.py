@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
 """Module for handling async communications"""
-#from .api import authorize, connect, execute, close
+
 from .protocol import factory_connect
 from .exceptions import QueueError, ProtocolError
 import multiprocessing

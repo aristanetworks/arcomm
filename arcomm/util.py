@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-"""
-Utility helper functions and shortcuts
-"""
+"""Utility helper functions and shortcuts"""
+
 def to_list(data):
     """Creates a list containing the data as a single element or a new list
     from the original if it is already an iterable"""
