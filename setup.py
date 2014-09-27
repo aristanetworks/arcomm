@@ -32,7 +32,7 @@ setup(
         "Environment :: Network Automation"
     ],
     packages = find_packages(),
-    url = "http://aristanetworks.com",
+    url = "https://github.com/aristanetworks/arcomm",
     license = "Proprietary",
     install_requires = ["jsonrpclib", "paramiko"],
     entry_points = {
