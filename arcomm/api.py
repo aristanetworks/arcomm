@@ -113,8 +113,8 @@ def execute_pool(hosts, creds, commands, **kwargs):
     for result in pool.results:
         yield (result.get("host"), result.get("response"))
 
-def execute_until(connection, commands, condition, timeout=30,
-                  sleep=5, exclude=False):
+def execute_until(connection, commands, condition, timeout=30, sleep=5,
+                  exclude=False):
     """Runs a command until a condition has been met or the timeout
     (in seconds) is exceeded. If 'exclude' is set this function will return
     only if the string is _not_ present"""
