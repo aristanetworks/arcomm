@@ -22,20 +22,21 @@ class Ssh(Protocol):
         re.compile(r'[\r\n]?password: ?$', re.I)
     ]
 
-    # Matches on:
-    # cs-spine-2a......14:08:54#
-    # cs-spine-2a>
-    # cs-spine-2a#
-    # cs-spine-2a(s1)#
-    # cs-spine-2a(s1)(config)#
-    # cs-spine-2b(vrf:management)(config)#
-    # cs-spine-2b(s1)(vrf:management)(config)#
-    # [admin@cs-spine-2a /]$
-    # [admin@cs-spine-2a local]$
-    # [admin@cs-spine-2a ~]$
-    # -bash-4.1#
     _prompt_re = [
+        # Match on:
+        # cs-spine-2a......14:08:54#
+        # cs-spine-2a>
+        # cs-spine-2a#
+        # cs-spine-2a(s1)#
+        # cs-spine-2a(s1)(config)#
+        # cs-spine-2b(vrf:management)(config)#
+        # cs-spine-2b(s1)(vrf:management)(config)#
         re.compile(r"[\r\n]?[\w+\-\.:\/]+(?:\([^\)]+\)){,3}(?:>|#) ?$"),
+        # Match on:
+        # [admin@cs-spine-2a /]$
+        # [admin@cs-spine-2a local]$
+        # [admin@cs-spine-2a ~]$
+        # -bash-4.1#
         re.compile(r"\[\w+\@[\w\-\.]+(?: [^\]])\] ?[>#\$] ?$")
     ]
 
@@ -141,7 +142,6 @@ class Ssh(Protocol):
 
     def _on_connect(self):
         self.execute("terminal length 0")
-        self.execute("terminal dont-ask")
 
     def _close(self):
         if hasattr(self.connection, "close"):
