@@ -6,21 +6,18 @@ import sys
 from .api import connect, execute, execute_pool, get_credentials
 from .exceptions import ExecuteFailed
 
-def makescript(script, variables):
-    """Generate script from list of commands or prompt user for input"""
+def makescript(path=None, variables=None):
+    """Generate script from a file, list of commands or prompt user for input"""
+    
     script = []
-    if script:
-        with open(script, "r") as file_handle:
+    
+    if path:
+        with open(path, "r") as file_handle:
             script = file_handle.read()
+            script = script.splitlines()
     else:
         isatty = sys.stdin.isatty()
-
         if isatty:
-            # try:
-            #     import readline
-            # except ImportError:
-            #     pass
-
             print "Enter commands (one per line)."
             print "Enter '.' alone to send or 'Crtl-C' to quit."
             try:
