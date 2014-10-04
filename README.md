@@ -64,7 +64,7 @@ Console Example
     Timezone: UTC
     Clock source: local
 
-or pipe in the commands...
+**or pipe in the commands...**
 
     $ echo "show clock" | arcomm spine2a -u admin -p ""
     spine2a (command-api)>show clock
@@ -72,7 +72,7 @@ or pipe in the commands...
     Timezone: UTC
     Clock source: local
 
-even multiple hosts in parallel...
+**even multiple hosts in parallel...**
 
     $ echo "show ip bgp summary | include {{filter}}" | \
     > arcomm spine1a spine2a -u admin -p ""--variables='{"filter": "Active"}' \
@@ -84,6 +84,26 @@ even multiple hosts in parallel...
     spine1a >>> spine1a (command-api)#enable
     spine1a (command-api)#show ip bgp summary | include Active
     172.16.111.3     4  64521         0         0    0    0 14:46:48 Active
+
+Multiple Switch Upgrade w/ Script Example
+------------------------------------------
+
+**Contents of upgrade script file:**
+
+    $ cat sw-upgrade.script
+    ! script will stop here if file is not found.
+    dir flash:{{image}}
+    show ip interface brief
+    configure
+      boot system flash:{{image}}
+    end
+    reload now
+
+Command-line w/ --variables argument:
+
+    $ arcomm spine1a spine2a -u admin -p "" -a "" \
+    > --script=arista-upgrade.script \
+    > --variables='{"image": "vEOS-4.13.7.2M.swi"}'
 
 
 API Usage
