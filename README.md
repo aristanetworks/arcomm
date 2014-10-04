@@ -102,7 +102,7 @@ Multiple Switch Upgrade w/ Script Example
 Command-line w/ --variables argument:
 
     $ arcomm spine1a spine2a -u admin -p "" -a "" \
-    > --script=arista-upgrade.script \
+    > --script=sw-upgrade.script \
     > --variables='{"image": "vEOS-4.13.7.2M.swi"}'
 
 
