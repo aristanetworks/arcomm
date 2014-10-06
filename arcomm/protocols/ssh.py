@@ -42,6 +42,7 @@ class Ssh(Protocol):
 
     _error_re = [
         re.compile(r'% ?Error'),
+        re.compile(r'[\r\n]+% ?\w+'),
         re.compile(r'% ?Bad secret'),
         re.compile(r'invalid input', re.I),
         re.compile(r'(?:incomplete|ambiguous) command', re.I),
