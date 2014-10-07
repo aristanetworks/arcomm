@@ -103,7 +103,7 @@ Command-line w/ --variables argument:
 
     $ arcomm spine1a spine2a -u admin -p "" -a "" \
     > --script=sw-upgrade.script \
-    > --variables='{"image": "vEOS-4.13.7.2M.swi"}'
+    > --variables='{"image": "vEOS-4.14.3F.swi"}'
 
 
 API Usage

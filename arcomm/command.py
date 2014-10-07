@@ -2,12 +2,16 @@
 """Command module.  stores command and any prompts or answers it may require"""
 
 import collections
+import re
 from .util import to_list
 
 class Command(collections.MutableMapping):
     """Object to store command and any prompts or answers it may require"""
 
     def __init__(self, expression, prompt=None, answer=None):
+        
+        assert isinstance(expression, basestring), "expression must be a string"
+
         self._store = dict()
         prompt = to_list(prompt)
         updates = dict(expression=expression, prompt=prompt, answer=answer)
@@ -51,19 +55,3 @@ class Command(collections.MutableMapping):
         _data = dict(expression=self.expression, prompt=self.prompt,
                      answer=self.answer)
         return str(_data)
-
-def to_list_of_commands(commands):
-    """Converis a command or list of commands (strings) to a list of command
-    objects"""
-    commands = to_list(commands)
-
-    list_of_commmands = []
-    for command in commands:
-        if isinstance(command, Command):
-            list_of_commmands.append(command)
-        elif isinstance(command, basestring):
-            list_of_commmands.append(Command(command))
-        else:
-            raise ValueError("Command must be of type 'str' or 'Command'")
-
-    return list_of_commmands

@@ -2,7 +2,7 @@
 """Base module for protocol adapters"""
 
 import re
-from .command import to_list_of_commands
+from .util import to_list, to_list_of_commands
 from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed
 from .util import to_list
 DEFAULT_PROTOCOL = ["capi", "ssh"]

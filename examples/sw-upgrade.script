@@ -1,0 +1,9 @@
+! Usage:
+! $ arcomm <sw1> [<sw2> [<swN>]] -u <user> -p <pass> [-a <enable_secret>] \
+! > --script=sw-upgrade.script --variables='{"image": "<image>"}'
+dir flash:{{image}}
+show ip interface brief
+configure
+  boot system flash:{{image}}
+end
+reload now

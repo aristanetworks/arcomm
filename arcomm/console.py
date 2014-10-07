@@ -6,7 +6,7 @@ import sys
 from .api import connect, execute, execute_pool, get_credentials
 from .exceptions import ExecuteFailed
 
-def makescript(path=None, variables=None):
+def _makescript(path=None, variables=None):
     """Generate script from a file, list of commands or prompt user for input"""
     
     script = []
@@ -86,7 +86,7 @@ def main():
         conn = connect(args.hosts[0], creds, protocol=args.protocol,
                        timeout=args.timeout)
 
-    script = makescript(args.script, args.variables)
+    script = _makescript(args.script, args.variables)
 
     if conn:
         try:
