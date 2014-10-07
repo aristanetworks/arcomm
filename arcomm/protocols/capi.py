@@ -11,7 +11,9 @@ def _format_commands(commands):
     """converts commands to CAPI formatted dicts"""
     formatted = []
     for command in commands:
-        formatted.append(dict(cmd=command.expression, intput=command.answer))
+        _cmd = str(command).strip()
+        _answer = command.answer or ""
+        formatted.append(dict(cmd=_cmd, input=_answer))
     return formatted
 
 # wrapper for jsonrpclib, works with Arista switches over http or https?
