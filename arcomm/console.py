@@ -92,7 +92,9 @@ def main():
         try:
             print execute(conn, script)
         except ExecuteFailed as exc:
+            print "ERROR: One or more commands failed."
             print exc.message
+            exit(1)
     else:
         pool = execute_pool(args.hosts, creds, script, protocol=args.protocol,
                             timeout=args.timeout)
