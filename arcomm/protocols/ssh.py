@@ -42,12 +42,12 @@ class Ssh(Protocol):
 
     _error_re = [
         re.compile(r"% ?Error"),
-        re.compile(r"[\r\n]+% ?\w+"),
+        re.compile(r"^% \w+", re.M),
         re.compile(r"% ?Bad secret"),
         re.compile(r"invalid input", re.I),
         re.compile(r"(?:incomplete|ambiguous) command", re.I),
         re.compile(r"connection timed out", re.I),
-        re.compile(r"[^\r\n]+ not found", re.I)
+        re.compile(r"[^\r\n]+ not found", re.I),
         re.compile(r"'[^']' +returned error code: ?\d+")
     ]
 
@@ -98,7 +98,7 @@ class Ssh(Protocol):
 
             buff.seek(buff.tell() - 150)
             window = buff.read()
-
+            #print "WINDOW>>\n", window, "\n<<END_WINDOW"
             if self._handle_errors(window):
                 errored_response = buff.getvalue()
 
