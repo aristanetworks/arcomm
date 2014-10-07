@@ -19,7 +19,7 @@ class Ssh(Protocol):
     _channel = None
     _banner = ""
     _password_re = [
-        re.compile(r'[\r\n]?password: ?$', re.I)
+        re.compile(r"[\r\n]?password: ?$", re.I)
     ]
 
     _prompt_re = [
@@ -41,13 +41,14 @@ class Ssh(Protocol):
     ]
 
     _error_re = [
-        re.compile(r'% ?Error'),
-        re.compile(r'[\r\n]+% ?\w+'),
-        re.compile(r'% ?Bad secret'),
-        re.compile(r'invalid input', re.I),
-        re.compile(r'(?:incomplete|ambiguous) command', re.I),
-        re.compile(r'connection timed out', re.I),
-        re.compile(r'[^\r\n]+ not found', re.I)
+        re.compile(r"% ?Error"),
+        re.compile(r"[\r\n]+% ?\w+"),
+        re.compile(r"% ?Bad secret"),
+        re.compile(r"invalid input", re.I),
+        re.compile(r"(?:incomplete|ambiguous) command", re.I),
+        re.compile(r"connection timed out", re.I),
+        re.compile(r"[^\r\n]+ not found", re.I)
+        re.compile(r"'[^']' +returned error code: ?\d+")
     ]
 
     def _on_initialize(self, **kwargs):
