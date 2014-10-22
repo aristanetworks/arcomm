@@ -3,6 +3,7 @@
 
 import json
 import sys
+from . import __version__
 from .api import connect, execute, execute_pool, get_credentials
 from .exceptions import ExecuteFailed
 
@@ -55,6 +56,7 @@ def main():
     parser = ArgumentParser(prog="arcomm")
     arg = parser.add_argument
     arg("hosts", nargs="*")
+    arg("-v", "--version", help="Display version info")
     arg("--authorize", action="store_true")
     arg("--protocol", default=["capi", "ssh"],
         help=("Set the default protocol or protocols. If more than one is "
@@ -74,6 +76,12 @@ def main():
     arg("--variables", help=("Replacements for template variables in script "
                              "file (must be JSON formatted)"))
     args = parser.parse_args()
+    
+    if args.version:
+        parser.exit(0, __version__)
+
+    if not args.hosts:
+        parser.error("At least one host must be specified")
 
     if args.authorize and not args.authorize_password:
         args.authorize_password = ""
