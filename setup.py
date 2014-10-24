@@ -39,7 +39,6 @@ setup(
     url = "https://github.com/aristanetworks/arcomm",
     download_url = "https://github.com/aristanetworks/arcomm/archive/v1.0.0.tar.gz",
     license = "MIT Licesnse",
-    install_requires = ["paramiko"],
     entry_points = {
         'console_scripts': [
             'arcomm = arcomm.console:main',

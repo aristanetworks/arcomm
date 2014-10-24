@@ -3,7 +3,10 @@
 
 import re
 import socket
-import paramiko
+try:
+    import paramiko
+except:
+    ProtocolException("paramiko is required for SSH connections")
 from paramiko import AuthenticationException
 from StringIO import StringIO
 from ..protocol import Protocol
