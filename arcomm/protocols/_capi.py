@@ -129,13 +129,3 @@ class _Capi(object):
             response["result"].pop(0)
         return response
 
-# def main():
-#     """called if directly invoked"""
-#     import sys
-#     capi = _Capi(sys.argv[1], "admin")
-#     # per execute params...
-#     capi.enable()
-#     print capi.execute(sys.argv[2:], encoding="json", timestamps=False)
-#
-# if __name__ == "__main__":
-#     main()
