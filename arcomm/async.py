@@ -118,7 +118,7 @@ class Background(object):
         """End the job now"""
         if self._process.is_alive():
             self._process.terminate()
-            
+
         #self._results = Queue()
         self._results.close()
         return self._process.exitcode
@@ -151,7 +151,7 @@ class Queue(object):
         try:
             self._queue.put(self._sentinel)
         except socket.error as err:
-            raise QueueError("[{}] {}".format(err))
+            raise QueueError("{}".format(err))
         self._closed = True
 
     def get(self, block=True, timeout=None):

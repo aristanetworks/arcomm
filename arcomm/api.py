@@ -118,6 +118,7 @@ def execute_until(connection, commands, condition, timeout=30, sleep=5,
     """Runs a command until a condition has been met or the timeout
     (in seconds) is exceeded. If 'exclude' is set this function will return
     only if the string is _not_ present"""
+    #pylint: disable=too-many-arguments
     start_time = time.time()
     check_time = start_time
     response = None

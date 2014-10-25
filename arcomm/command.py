@@ -2,14 +2,13 @@
 """Command module.  stores command and any prompts or answers it may require"""
 
 import collections
-import re
 from .util import to_list
 
 class Command(collections.MutableMapping):
     """Object to store command and any prompts or answers it may require"""
 
     def __init__(self, expression, prompt=None, answer=None):
-        
+
         assert isinstance(expression, basestring), "expression must be a string"
 
         self._store = dict()

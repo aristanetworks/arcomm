@@ -9,9 +9,9 @@ from .exceptions import ExecuteFailed
 
 def _makescript(path=None, variables=None):
     """Generate script from a file, list of commands or prompt user for input"""
-    
+
     script = []
-    
+
     if path:
         with open(path, "r") as file_handle:
             script = file_handle.read()
@@ -76,7 +76,7 @@ def main():
     arg("--variables", help=("Replacements for template variables in script "
                              "file (must be JSON formatted)"))
     args = parser.parse_args()
-    
+
     if args.version:
         parser.exit(0, __version__)
 

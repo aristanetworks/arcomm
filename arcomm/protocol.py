@@ -2,16 +2,25 @@
 """Base module for protocol adapters"""
 
 import re
-from .util import to_list, to_list_of_commands
-from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed
+from .command import Command
 from .util import to_list
+from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed
 DEFAULT_PROTOCOL = ["capi", "ssh"]
 DEFAULT_TIMEOUT = 30
+
+def to_list_of_commands(commands):
+    """Converts a command or list of commands to a list of Command objects"""
+    commands = to_list(commands)
+    _loc = []
+    for _cmd in commands:
+        if not isinstance(_cmd, Command):
+            _cmd = Command(_cmd)
+        _loc.append(_cmd)
+    return _loc
 
 class ResponseItem(object):
     """Store a single response"""
     def __init__(self, command, data):
-        
         self._command = command
         self._data = data
 
@@ -24,10 +33,10 @@ class ResponseItem(object):
     def data(self):
         """data returned from the command"""
         return self._data
-    
+
     def __contains__(self, item):
         return item in self._data
-    
+
     def __str__(self):
         """return the data fromthe response as a string"""
         return self._data
@@ -87,9 +96,10 @@ class Response(object):
         items = zip(commands, responses)
         for command, response in items:
             self.append(ResponseItem(command, response))
-    
+
     def splitlines(self):
-        return self.__str__().splitlines()
+        """returns responses as a list"""
+        return self.responses
 
 class Protocol(object):
     """Base class for protocol adapters"""

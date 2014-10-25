@@ -3,17 +3,18 @@
 
 import re
 import socket
-try:
-    import paramiko
-except:
-    ProtocolException("paramiko is required for SSH connections")
 from paramiko import AuthenticationException
 from StringIO import StringIO
 from ..protocol import Protocol
 from ..exceptions import ConnectFailed, ExecuteFailed, Timeout, \
-                         AuthenticationFailed
+                         AuthenticationFailed, ProtocolException
 from ..command import Command
 from ..util import to_list
+
+try:
+    import paramiko
+except ImportError:
+    ProtocolException("paramiko is required for SSH connections")
 
 class Ssh(Protocol):
     """SSH protocol adapter"""
@@ -73,9 +74,9 @@ class Ssh(Protocol):
                          password=creds.password, timeout=self.timeout)
         except AuthenticationException as exc:
             raise AuthenticationFailed(exc.message)
-        except IOError as e:
-            raise ConnectFailed(e.message)
-        
+        except IOError as exc:
+            raise ConnectFailed(exc.message)
+
         _channel = _ssh.invoke_shell()
         _channel.settimeout(self.timeout)
 
@@ -86,7 +87,7 @@ class Ssh(Protocol):
 
     def _send(self, command):
         """Sends a command to the remote device and returns the response"""
-        
+
         buff = StringIO()
         errored_response = ""
         self._channel.sendall(str(command) + '\r')
