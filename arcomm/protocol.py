@@ -110,8 +110,8 @@ class Protocol(object):
         self._connected = False
         self._connection = None
         self._authorized = False
-        self._on_initialize(**kwargs)
         self._responses = Response()
+        self._on_initialize(**kwargs)
 
     @property
     def authorized(self):
@@ -179,7 +179,7 @@ class Protocol(object):
         pass
 
     def _on_initialize(self, **kwargs):
-        """Implmented by the protocol, called after __init__"""
+        """Implmented by the protocol, called at end of __init__"""
         pass
 
     def _send(self, command):
@@ -211,7 +211,7 @@ class Protocol(object):
 
         self._connection = self._connect(self.host, self.creds)
 
-        # auto-authorize if password is set
+        # auto-authorize if password is not None
         if self.creds.authorize_password is not None:
             self.authorize(self.creds.authorize_password)
 
