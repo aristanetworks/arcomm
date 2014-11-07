@@ -105,7 +105,7 @@ class _Capi(object):
         response = self.http(req)
         data = json.loads(response.read())
 
-        if "error" in response:
+        if "error" in data:
             _message = response["error"]["message"]
             _code = response["error"]["code"]
             raise _CapiException("Error [{}]: {}".format(_code, _message))
