@@ -71,8 +71,6 @@ class _Capi(object):
         self.__uri = _uri.format(self.protocol, self.host, self.port)
         return self.__uri
 
-
-
     def _get_auth_opener(self):
         """create a URL opener with an authentication handler"""
         passmgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -99,7 +97,7 @@ class _Capi(object):
                            "params": params, "id": self.capi_id})
 
     def _send(self, data):
-        """sned the request data to the host and return the response"""
+        """send the request data to the host and return the response"""
         header = {'Content-Type': 'application/json'}
         req = urllib2.Request(self.uri, data, header)
         response = self.http(req)
@@ -121,12 +119,11 @@ class _Capi(object):
         """execute a series of commands on a remote host. removes the output
         item for the 'enable' command if `self.enabled` is True"""
         if self.enabled:
-            # don't overwrite commands
             _enable = [{"cmd": "enable", "input": self.enable_pass}]
             commands = _enable + commands
 
-        _request = self._request(commands, **kwargs)
-        response = self._send(_request)
+        request = self._request(commands, **kwargs)
+        response = self._send(request)
 
         if self.enabled:
             response["result"].pop(0)
