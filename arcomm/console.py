@@ -66,7 +66,7 @@ def main():
         help=("Specifies users password.  If not supplied, the user will be "
               "prompted"))
     arg("-a", "--authorize-password", default=None,
-        help=("Use if a password for elevated prvilges"))
+        help=("Use if a password is needed for elevated prvilges"))
     arg("-t", "--timeout", type=int, default=300,
         help=("Change the timeout from the default of 300 seconds"))
     arg("--script", help=("Path to a script file containing commands to "
@@ -88,15 +88,12 @@ def main():
 
     creds = get_credentials(username=args.username, password=args.password,
                             authorize_password=args.authorize_password)
-    conn = None
+
+    script = _makescript(args.script, args.variables)
 
     if len(args.hosts) == 1:
         conn = connect(args.hosts[0], creds, protocol=args.protocol,
                        timeout=args.timeout)
-
-    script = _makescript(args.script, args.variables)
-
-    if conn:
         try:
             print execute(conn, script)
         except ExecuteFailed as exc:
