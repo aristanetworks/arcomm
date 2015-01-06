@@ -18,7 +18,7 @@ def to_list_of_commands(commands):
         _loc.append(_cmd)
     return _loc
 
-class ResponseItem(object):
+class Response(object):
     """Store a single response"""
     def __init__(self, command, data):
         self._command = command
@@ -38,10 +38,10 @@ class ResponseItem(object):
         return item in self._data
 
     def __str__(self):
-        """return the data fromthe response as a string"""
+        """return the data from the response as a string"""
         return self._data
 
-class Response(object):
+class ResponseStore(object):
     """List-like object for storing responses"""
     def __init__(self):
         self._store = list()
@@ -71,8 +71,9 @@ class Response(object):
 
     def append(self, item):
         """adds a response item to the list"""
-        # if not isinstance(item, ResponseItem):
-        #     item = ResponseItem(item[0], item[1])
+
+        if not isinstance(item, Response):
+            item = Response(*item)
         self._store.append(item)
 
     def filter(self, value=""):
@@ -91,27 +92,29 @@ class Response(object):
         """emptys the responses"""
         self._store = list()
 
-    def fill(self, commands, responses):
-        """fill responses from two lists of commands and responses"""
-        items = zip(commands, responses)
-        for command, response in items:
-            self.append(ResponseItem(command, response))
-
     def splitlines(self):
         """returns responses as a list"""
         return self.responses
 
 class Protocol(object):
     """Base class for protocol adapters"""
-    def __init__(self, host, creds, timeout=300, **kwargs):
+    def __init__(self, host, creds, timeout=None, **kwargs):
         self._host = host
         self._creds = creds
         self._timeout = timeout or 300
         self._connected = False
         self._connection = None
         self._authorized = False
-        self._responses = Response()
+        self._keywords = kwargs
+        #self._monitors = []
+        self._responses = ResponseStore()
         self._on_initialize(**kwargs)
+
+    def __enter__(self):
+        self.connect()
+    
+    def __exit__(self, type, value, tb):
+        self.close()
 
     @property
     def authorized(self):
@@ -220,6 +223,16 @@ class Protocol(object):
 
     reconnect = connect
 
+    # def add_monitor(self, func):
+    #     """Attach a monitor to the session. callback function must accept two
+    #     parameters.  The first will be the command(s) the second will hold the
+    #     response(s)"""
+    #     self._monitors.append(func)
+
+    # def _notify(self, command, response):
+    #     for monitor in self._monitors:
+    #          monitor(command, response)
+
     def execute(self, commands):
         """Execute a command or series of commmands on a remote host"""
         self._responses.flush()
@@ -234,11 +247,18 @@ class Protocol(object):
         if not responses:
             raise NotImplementedError(("_send or _sendall must be defined in "
                                        "subclass"))
-
-        self._responses.fill(commands, responses)
+        
+        self._handle_respones(commands, responses)
 
         return str(self._responses)
 
+    def _handle_respones(self, commands, responses):
+        """fill responses from two lists of commands and responses"""
+        items = zip(commands, responses)
+        for command, response in items:
+            #self._notify(command, response)
+            self._responses.append((command, response))
+    
     def filter_responses(self, value=""):
         """Filter to response to those commands that match the pattern"""
         filtered = []
