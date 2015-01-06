@@ -4,10 +4,9 @@
 import urlparse
 import re
 import time
-from .util import to_list
-from .protocol import factory_connect
-from .credentials import Creds
-from .exceptions import Timeout
+import arcomm.protocol as proto
+import arcomm.credentials as creds
+import arcomm.async as async
 
 def authorize(connection, secret=""):
     """Authorize the given connection for elevated privileges"""
@@ -17,20 +16,31 @@ def authorized(connection):
     """Return authorization status of connection"""
     return connection.authorized
 
+def clone(connection, host=None, creds=None, protocol=None, timeout=None,
+          **kwargs):
+    host = host or connection.host
+    creds = creds or connection.creds
+    protocol = protocol or connection.protocol
+    keywords = dict(connection._keywords.items() + kwargs.items())
+    return proto.factory_connect(host, creds, protocol, timeout, **keywords)
+
+def monitor(connection, func):
+    pass
+
 def close(connection):
     """Close the connection"""
     connection.close()
 
 def configure(connection, commands, *args, **kwargs):
     """Similar to execute, but wraps the commands in a configure/end block"""
-    commands = to_list(commands)
+    commands = arcomm.util.to_list(commands)
     commands.insert(0, "configure")
     commands.append("end")
     return execute(connection, commands, *args, **kwargs)
 
 def connect(host, creds, protocol=None, timeout=None, **kwargs):
     """Connect to a host"""
-    return factory_connect(host, creds, protocol, timeout, **kwargs)
+    return proto.factory_connect(host, creds, protocol, timeout, **kwargs)
 
 
 def connect_with_password(host, username, password="", **kwargs):
@@ -75,8 +85,7 @@ def create_pool(hosts, creds, commands, **kwargs):
     for result in pool.results:
         print result
     """
-    from .async import Pool
-    pool = Pool(hosts, creds=creds, commands=commands, **kwargs)
+    pool = async.Pool(hosts, creds=creds, commands=commands, **kwargs)
     return pool
 
 def execute(connection, commands):
@@ -94,8 +103,7 @@ def execute_bg(host, creds, commands, **kwargs):
     for result in proc.results:
         print result
     """
-    from .async import Background
-    proc = Background(host, creds=creds, commands=commands, **kwargs)
+    proc = async.Background(host, creds=creds, commands=commands, **kwargs)
     return proc
 
 def execute_once(host, creds, commands):
@@ -132,12 +140,13 @@ def execute_until(connection, commands, condition, timeout=30, sleep=5,
             return response
         time.sleep(sleep)
         check_time = time.time()
-    raise Timeout("Timed out waiting for response to match condition")
+    raise arcomm.exceptions.Timeout(("Timed out waiting for response to match "
+                                     "condition"))
 
 def get_credentials(username, password="", authorize_password=None,
                     private_key=None):
     """Return a Creds object. If username and password are not passed the user
     will be prompted"""
-    return Creds(username=username, password=password,
-                 authorize_password=authorize_password, private_key=private_key)
-
+    return creds.Creds(username=username, password=password,
+                       authorize_password=authorize_password,
+                       private_key=private_key)
