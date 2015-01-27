@@ -106,7 +106,6 @@ class Protocol(object):
         self._connection = None
         self._authorized = False
         self._keywords = kwargs
-        #self._monitors = []
         self._responses = ResponseStore()
         self._on_initialize(**kwargs)
 
@@ -223,16 +222,6 @@ class Protocol(object):
 
     reconnect = connect
 
-    # def add_monitor(self, func):
-    #     """Attach a monitor to the session. callback function must accept two
-    #     parameters.  The first will be the command(s) the second will hold the
-    #     response(s)"""
-    #     self._monitors.append(func)
-
-    # def _notify(self, command, response):
-    #     for monitor in self._monitors:
-    #          monitor(command, response)
-
     def execute(self, commands):
         """Execute a command or series of commmands on a remote host"""
         self._responses.flush()
@@ -256,7 +245,6 @@ class Protocol(object):
         """fill responses from two lists of commands and responses"""
         items = zip(commands, responses)
         for command, response in items:
-            #self._notify(command, response)
             self._responses.append((command, response))
     
     def filter_responses(self, value=""):

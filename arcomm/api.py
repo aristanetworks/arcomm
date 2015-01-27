@@ -4,6 +4,7 @@
 import urlparse
 import re
 import time
+import arcomm
 import arcomm.protocol as proto
 import arcomm.credentials as creds
 import arcomm.async as async
@@ -41,7 +42,6 @@ def configure(connection, commands, *args, **kwargs):
 def connect(host, creds, protocol=None, timeout=None, **kwargs):
     """Connect to a host"""
     return proto.factory_connect(host, creds, protocol, timeout, **kwargs)
-
 
 def connect_with_password(host, username, password="", **kwargs):
     """Use a username and password to connect to host"""

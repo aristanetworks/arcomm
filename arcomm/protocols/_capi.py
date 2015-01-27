@@ -100,12 +100,17 @@ class _Capi(object):
         """send the request data to the host and return the response"""
         header = {'Content-Type': 'application/json'}
         req = urllib2.Request(self.uri, data, header)
-        response = self.http(req)
+        
+        try:
+            response = self.http(req)
+        except urllib2.URLError as exc:
+            raise _CapiException("Error: {}".format(exc.message))
+
         data = json.loads(response.read())
 
         if "error" in data:
-            _message = response["error"]["message"]
-            _code = response["error"]["code"]
+            _message = data["error"]["message"]
+            _code = data["error"]["code"]
             raise _CapiException("Error [{}]: {}".format(_code, _message))
 
         return data
