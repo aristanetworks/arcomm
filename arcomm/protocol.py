@@ -280,7 +280,7 @@ def factory_connect(host, creds, protocol=None, timeout=None):
             _obj = _protocol_cls(host, creds, timeout)
             _obj.connect()
             return _obj
-        except ConnectFailed as exp:
-            error = exp.message
+        except ConnectFailed as exc:
+            error = exc.message
     message = "Failed to connect to host with error: {}".format(error)
     raise ConnectFailed(message)

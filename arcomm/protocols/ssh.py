@@ -75,7 +75,7 @@ class Ssh(Protocol):
         except AuthenticationException as exc:
             raise AuthenticationFailed(exc.message)
         except IOError as exc:
-            raise ConnectFailed(exc.message)
+            raise ConnectFailed("{}: {}".format(exc[0], exc[1]))
 
         _channel = _ssh.invoke_shell()
         _channel.settimeout(self.timeout)
