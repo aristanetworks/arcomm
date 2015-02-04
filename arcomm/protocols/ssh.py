@@ -3,7 +3,6 @@
 
 import re
 import socket
-from paramiko import AuthenticationException
 from StringIO import StringIO
 from ..protocol import Protocol
 from ..exceptions import ConnectFailed, ExecuteFailed, Timeout, \
@@ -65,15 +64,16 @@ class Ssh(Protocol):
 
     def _connect(self, host, creds):
         """Connect to a remote host"""
-
         _ssh = paramiko.SSHClient()
         _ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         try:
             _ssh.connect(host, self._port, username=creds.username,
                          password=creds.password, timeout=self.timeout)
-        except AuthenticationException as exc:
+        except paramiko.AuthenticationException as exc:
             raise AuthenticationFailed(exc.message)
+        except socket.timeout as exc:
+            raise ConnectFailed(str(exc))
         except IOError as exc:
             raise ConnectFailed("{}: {}".format(exc[0], exc[1]))
 
