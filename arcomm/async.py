@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """Module for handling async communications"""
 
-from .protocol import factory_connect
-from .exceptions import QueueError, ProtocolError
+import arcomm.protocol
 import multiprocessing
 import time
 import signal
@@ -20,17 +19,20 @@ def _worker(host, creds, commands, results, protocol=None, timeout=None):
     response = None
     errmsg = None
     try:
-        conn = factory_connect(host, creds, protocol, timeout)
+        conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
 
         if creds.authorize_password is not None:
             conn.authorize()
 
         response = conn.execute(commands)
         conn.close()
-    except ProtocolError as exc:
+    except ProtocolException as exc:
         errmsg = exc.message
 
     results.put(dict(host=host, response=response, error=errmsg))
+
+class QueueError(Exception):
+    """Queue has gone away or been deleted"""
 
 class Pool(object):
     """Convenience wrapper for Pool.  Send commands to a list of hosts using

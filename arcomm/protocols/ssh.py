@@ -5,8 +5,8 @@ import re
 import socket
 from StringIO import StringIO
 from ..protocol import Protocol
-from ..exceptions import ConnectFailed, ExecuteFailed, Timeout, \
-                         AuthenticationFailed, ProtocolException
+from ..exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
+                         ProtocolException
 from ..command import Command
 from ..util import to_list
 
@@ -93,10 +93,10 @@ class Ssh(Protocol):
         self._channel.sendall(str(command) + '\r')
 
         while True:
-            try:
-                response = self._channel.recv(200)
-            except socket.timeout:
-                raise Timeout("% Timeout while running: {}".format(command))
+            # try:
+            response = self._channel.recv(200)
+            # except socket.timeout:
+            #     raise Timeout("% Timeout while running: {}".format(command))
 
             buff.write(response)
 

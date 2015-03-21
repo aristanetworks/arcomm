@@ -140,8 +140,7 @@ def execute_until(connection, commands, condition, timeout=30, sleep=5,
             return response
         time.sleep(sleep)
         check_time = time.time()
-    raise arcomm.exceptions.Timeout(("Timed out waiting for response to match "
-                                     "condition"))
+    raise ValueError("condition did not match withing timeout period")
 
 def get_credentials(username, password="", authorize_password=None,
                     private_key=None):
