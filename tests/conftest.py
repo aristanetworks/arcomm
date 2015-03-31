@@ -1,5 +1,6 @@
 import pytest
-from arcomm import Creds
+#from arcomm import Creds
+import arcomm
 def pytest_addoption(parser):
     group = parser.getgroup("arcomm", "Arcomm testing options")
     group.addoption("--device", metavar="DEVICE",
@@ -38,5 +39,5 @@ def creds(request):
     username = request.config.getoption("--username")
     password = request.config.getoption("--password")
     authorize_password = request.config.getoption("--authorize-password")
-    return Creds(username=username, password=password,
+    return arcomm.get_credentials(username=username, password=password,
                  authorize_password=authorize_password)
