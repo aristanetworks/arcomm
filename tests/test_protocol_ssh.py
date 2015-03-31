@@ -61,4 +61,4 @@ def test_execute_prompt(connection):
         response = execute(connection, dict(cmd="write erase", prompt=re.compile(r"confirm"), answer=""))
     finally:
         # cleanup
-        execute(connection, ["write", "terminal dont-ask"])
+        execute(connection, ["terminal dont-ask", "write"])
