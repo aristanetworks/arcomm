@@ -4,7 +4,7 @@ from arcomm.api import authorize, configure, connect_with_password, \
                  execute_until, get_credentials
 
 from arcomm.exceptions import AuthenticationFailed, AuthorizationFailed, \
-                              ExecuteFailed, Timeout
+                              ExecuteFailed
 
 HOST = "spine2a"
 USER = "admin"
