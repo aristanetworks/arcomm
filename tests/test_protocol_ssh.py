@@ -1,4 +1,5 @@
 import pytest
+import re
 from arcomm.api import authorize, configure, connect_with_password, \
                  connect_with_uri, connect, create_uri, execute, \
                  execute_until, get_credentials
@@ -57,7 +58,7 @@ def test_execute_prompt(connection):
     execute(connection, "no terminal dont-ask")
 
     try:
-        response = execute(connection, dict(cmd="write erase", input=""))
+        response = execute(connection, dict(cmd="write erase", prompt=re.compile(r"confirm"), answer=""))
     finally:
         # cleanup
         execute(connection, ["write", "terminal dont-ask"])
