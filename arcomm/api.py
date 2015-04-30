@@ -48,7 +48,7 @@ def connect_with_password(host, username, password="", **kwargs):
     creds = get_credentials(username=username, password=password)
     return connect(host, creds, **kwargs)
 
-def connect_with_uri(uri, **kwargs):
+def connect_uri(uri, **kwargs):
     """Connect to host using a URI
     example:
         ssh://joe:p4ssw3rd@switch:2222
