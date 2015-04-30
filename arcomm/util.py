@@ -6,9 +6,10 @@ def to_list(data):
     from the original if it is already a list or a tuple"""
     if isinstance(data, (list, tuple)):
         return list(data)
-    else:
+    elif data is not None:
         return [data]
-
+    else:
+        return []
 def to_multiline_string(data, end_of_line="\r\n"):
     """Return a string from a list"""
 
