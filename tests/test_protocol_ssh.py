@@ -8,8 +8,8 @@ from arcomm.exceptions import AuthenticationFailed, AuthorizationFailed, \
                               ExecuteFailed
 
 HOST = "spine2a"
-USER = "admin"
-PASS = ""
+USER = "testuser"
+PASS = "testpass"
 BAD_SECRET = "badsecret"
 SECRET = "s3cr3t"
 

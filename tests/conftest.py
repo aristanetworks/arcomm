@@ -3,29 +3,29 @@ import pytest
 import arcomm
 def pytest_addoption(parser):
     group = parser.getgroup("arcomm", "Arcomm testing options")
-    group.addoption("--device", metavar="DEVICE",
-                    help="Device to use for testing")
-    group.addoption("--username", metavar="USERNAME",
-                    help="Specifies username on device")
-    group.addoption("--password", metavar="PASSWORD",
+    group.addoption("--host", metavar="HOST",
+                    help="Host to use for testing")
+    group.addoption("--username", metavar="USERNAME", default="admin",
+                    help="Specifies username on host")
+    group.addoption("--password", metavar="PASSWORD", default="",
                     help="Specifies password")
     group.addoption("--authorize-password",
                     help=("rescan output directory and regenerate html"
                          "reports, but don't run any test cases"))
 
 @pytest.fixture(scope="session")
-def device(request):
-    """Device hostname or IP address"""
-    return request.config.getoption("--device")
+def host(request):
+    """Host hostname or IP address"""
+    return request.config.getoption("--host")
 
 @pytest.fixture(scope="session")
 def password(request):
-    """Username on device"""
+    """Username on host"""
     return request.config.getoption("--password")
 
 @pytest.fixture(scope="session")
 def username(request):
-    """Password for user on device"""
+    """Password for user on host"""
     return request.config.getoption("--username")
 
 @pytest.fixture(scope="session")
