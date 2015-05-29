@@ -88,9 +88,9 @@ def create_pool(hosts, creds, commands, **kwargs):
     pool = async.Pool(hosts, creds=creds, commands=commands, **kwargs)
     return pool
 
-def execute(connection, commands):
+def execute(connection, commands, **kwargs):
     """Execute a command or series of commands and return the results"""
-    return connection.execute(commands)
+    return connection.execute(commands, **kwargs)
 
 def execute_bg(host, creds, commands, **kwargs):
     """Returns a command ready to be run in the background

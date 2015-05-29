@@ -1,44 +1,29 @@
 # -*- coding: utf-8 -*-
-"""CAPI module to replace need for jsonrpclib"""
+"""Eapi module to replace need for jsonrpclib"""
 import json
 import urllib2
 
-class _CapiException(Exception):
-    """base class for CAPI errors"""
+class _EapiException(Exception):
+    """base class for Eapi errors"""
     pass
 
-class _Capi(object):
-    """Simple implementation of a CAPI client that does not use jsonrpclib"""
+class _Eapi(object):
+    """Simple implementation of a Eapi client that does not use jsonrpclib"""
 
     #pylint: disable=too-many-instance-attributes
-    __encoding = __protocol = __timestamps = __uri = None
+    __protocol = None
+    __uri = None
 
-    def __init__(self, host, username, password="", enable="", use_ssl=False,
-                 port=None, encoding="json", timestamps=False):
-        #pylint: disable=too-many-arguments
-        self.capi_id = "arcomm.protocols." + self.__class__.__name__
+    def __init__(self, host, username, password="", enable="", use_ssl=False, port=None):
+        self.eapi_id = "arcomm.protocols." + self.__class__.__name__
         self.host = host
         self.user = username
         self.password = password
         self.enable_pass = enable
         self.enabled = False
-        self.encoding = encoding
-        self.timestamps = timestamps
         self.protocol = "http" if not use_ssl else "https"
         self.port = port or (80 if self.protocol == "http" else 443)
         self.http = self._get_auth_opener()
-
-    @property
-    def encoding(self):
-        #pylint: disable=missing-docstring
-        return self.__encoding
-
-    @encoding.setter
-    def encoding(self, value):
-        #pylint: disable=missing-docstring
-        if value not in ("text", "json"):
-            raise ValueError("encoding must be 'text' or 'json'")
-        self.__encoding = value
 
     @property
     def protocol(self):
@@ -51,16 +36,6 @@ class _Capi(object):
         if value not in ("http", "https"):
             raise ValueError("protocol must be 'http' or 'https'")
         self.__protocol = value
-
-    @property
-    def timestamps(self):
-        #pylint: disable=missing-docstring
-        return self.__timestamps
-
-    @timestamps.setter
-    def timestamps(self, value):
-        #pylint: disable=missing-docstring
-        self.__timestamps = True if value else False
 
     @property
     def uri(self):
@@ -79,14 +54,8 @@ class _Capi(object):
         opener = urllib2.build_opener(handler)
         return opener.open
 
-    def _request(self, commands, timestamps=None, encoding=None):
+    def _request(self, commands, timestamps=False, encoding="text"):
         """generate the request data"""
-
-        if not encoding:
-            encoding = self.encoding
-
-        if not timestamps:
-            timestamps = self.timestamps
 
         params = {"version": 1, "cmds": commands, "format": encoding}
         # timestamps is a newer param, only include it if requested
@@ -94,7 +63,7 @@ class _Capi(object):
             params["timestamps"] = timestamps
 
         return json.dumps({"jsonrpc": "2.0", "method": "runCmds",
-                           "params": params, "id": self.capi_id})
+                           "params": params, "id": self.eapi_id})
 
     def _send(self, data):
         """send the request data to the host and return the response"""
@@ -104,14 +73,14 @@ class _Capi(object):
         try:
             response = self.http(req)
         except urllib2.URLError as exc:
-            raise _CapiException("Error: {}".format(exc.message))
+            raise _EapiException("Error: {}".format(exc.message))
 
         data = json.loads(response.read())
 
         if "error" in data:
             _message = data["error"]["message"]
             _code = data["error"]["code"]
-            raise _CapiException("Error [{}]: {}".format(_code, _message))
+            raise _EapiException("Error [{}]: {}".format(_code, _message))
 
         return data
 

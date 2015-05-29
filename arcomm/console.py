@@ -50,6 +50,9 @@ def _makescript(path=None, variables=None):
 
     return script
 
+def indent(text, spaces=0):
+    return "\n".join([" " * spaces + line for line in text.splitlines()])
+
 def main():
     """Main routine"""
     from argparse import ArgumentParser
@@ -58,9 +61,10 @@ def main():
     arg("hosts", nargs="*")
     arg("-v", "--version", help="Display version info")
     arg("--authorize", action="store_true")
-    arg("--protocol", default=["capi", "ssh"],
+    arg("--protocol", default=["eapi", "ssh"],
         help=("Set the default protocol or protocols. If more than one is "
               "supplied, they will be tried in order"))
+    arg("--encoding", default="text", help="accepts 'text' or 'json'")
     arg("-u", "--username", help="Specifies the username on the switch")
     arg("-p", "--password",
         help=("Specifies users password.  If not supplied, the user will be "
@@ -91,20 +95,23 @@ def main():
 
     script = _makescript(args.script, args.variables)
 
-    if len(args.hosts) == 1:
-        conn = connect(args.hosts[0], creds, protocol=args.protocol,
-                       timeout=args.timeout)
-        try:
-            print execute(conn, script)
-        except ExecuteFailed as exc:
-            print "ERROR: One or more commands failed."
-            print exc.message
-            exit(1)
-    else:
-        pool = execute_pool(args.hosts, creds, script, protocol=args.protocol,
-                            timeout=args.timeout)
-        for host, response in pool:
-            print host, ">>>", response
+    pool = execute_pool(args.hosts, creds, script, protocol=args.protocol,
+                        timeout=args.timeout, encoding=args.encoding)
+
+    for host, responses in pool:
+        print "---"
+        if args.encoding == "json":
+            print json.dumps({
+                  "host": host,
+                  "commands": responses.to_dict()
+            }, indent=4, separators=(',', ': '))
+        else:
+            print "host: {}".format(host)
+            print "commands:"
+            for response in responses:
+                print "  - {}: |".format(response.command)
+                print indent(response.data, spaces=6)
+    print "..."
 
 if __name__ == "__main__":
     main()

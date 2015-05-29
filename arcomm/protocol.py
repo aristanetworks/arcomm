@@ -2,10 +2,11 @@
 """Base module for protocol adapters"""
 
 import re
+import json
 from .command import Command
 from .util import to_list
 from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed
-DEFAULT_PROTOCOL = ["capi", "ssh"]
+DEFAULT_PROTOCOL = ["eapi", "ssh"]
 DEFAULT_TIMEOUT = 30
 
 def to_list_of_commands(commands):
@@ -14,7 +15,7 @@ def to_list_of_commands(commands):
     _loc = []
     for _cmd in commands:
         if not isinstance(_cmd, Command):
-            _cmd = Command(_cmd)
+            _cmd = Command(_cmd.strip())
         _loc.append(_cmd)
     return _loc
 
@@ -53,7 +54,11 @@ class ResponseStore(object):
         return self._store[item]
 
     def __str__(self):
-        return "\n".join(self.responses)
+        str_ = ""
+        for response in self._store:
+            str_ += "#{}\n{}\n".format(str(response.command).strip(),
+                                       response.data)
+        return str_
 
     def __contains__(self, item):
         """allow string searches on all responses"""
@@ -95,6 +100,15 @@ class ResponseStore(object):
     def splitlines(self):
         """returns responses as a list"""
         return self.responses
+
+    def to_dict(self):
+        data = []
+        for response in self._store:
+            data.append({str(response.command): response.data})
+        return data
+        
+    def to_json(self, *args, **kwargs):
+        return json.dumps(self.to_dict(), *args, **kwargs)
 
 class Protocol(object):
     """Base class for protocol adapters"""
@@ -184,10 +198,10 @@ class Protocol(object):
         """Implmented by the protocol, called at end of __init__"""
         pass
 
-    def _send(self, command):
+    def _send(self, command, **kwargs):
         """Called for each command sent to 'execute'"""
 
-    def _sendall(self, command):
+    def _sendall(self, commands, **kwargs):
         """Called for each command sent to 'execute'"""
 
     def authorize(self, secret=None):
@@ -222,24 +236,25 @@ class Protocol(object):
 
     reconnect = connect
 
-    def execute(self, commands):
+    def execute(self, commands, **kwargs):
         """Execute a command or series of commmands on a remote host"""
         self._responses.flush()
         commands = to_list_of_commands(commands)
 
-        responses = self._sendall(commands) or []
+        responses = self._sendall(commands, **kwargs) or []
         if not responses:
             for command in commands:
-                response = self._send(command)
+                response = self._send(command, **kwargs)
                 responses.append(response)
 
         if not responses:
             raise NotImplementedError(("_send or _sendall must be defined in "
                                        "subclass"))
-        
+        #print responses
+    
         self._handle_respones(commands, responses)
-
-        return str(self._responses)
+        
+        return self._responses
 
     def _handle_respones(self, commands, responses):
         """fill responses from two lists of commands and responses"""

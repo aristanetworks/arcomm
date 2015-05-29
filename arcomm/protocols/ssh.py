@@ -9,6 +9,7 @@ from ..exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
                          ProtocolException
 from ..command import Command
 from ..util import to_list
+import json
 
 try:
     import paramiko
@@ -51,7 +52,8 @@ class Ssh(Protocol):
         re.compile(r"(?:incomplete|ambiguous) command", re.I),
         re.compile(r"connection timed out", re.I),
         re.compile(r"[^\r\n]+ not found", re.I),
-        re.compile(r"'[^']' +returned error code: ?\d+")
+        re.compile(r"'[^']' +returned error code: ?\d+"),
+        re.compile(r"[^\r\n]\/bin\/(?:ba)?sh", )
     ]
 
     def _on_initialize(self, **kwargs):
@@ -85,24 +87,25 @@ class Ssh(Protocol):
         self._banner = self._send(Command("\n"))
         return _ssh
 
-    def _send(self, command):
+    def _send(self, command, encoding="text"):
         """Sends a command to the remote device and returns the response"""
 
         buff = StringIO()
         errored_response = ""
-        self._channel.sendall(str(command) + '\r')
+        
+        send = str(command)
+        if encoding == "json":
+            send = send + " | json"
+        self._channel.sendall(send + '\r')
 
         while True:
-            # try:
             response = self._channel.recv(200)
-            # except socket.timeout:
-            #     raise Timeout("% Timeout while running: {}".format(command))
 
             buff.write(response)
 
             buff.seek(buff.tell() - 150)
             window = buff.read()
-            #print "WINDOW>>\n", window, "\n<<END_WINDOW"
+
             if self._handle_errors(window):
                 errored_response = buff.getvalue()
 
@@ -113,8 +116,25 @@ class Ssh(Protocol):
                 if errored_response:
                     raise ExecuteFailed(errored_response)
                 else:
-                    return buff.getvalue()
-
+                    response = buff.getvalue()
+                    #print "RESPONSE:", response
+                    
+                    response = self._clean_response(command, response)
+                    
+                    return json.loads(response) if encoding == "json" else response
+    
+    def _clean_response(self, command, response):
+        cleaned = []
+        for line in response.splitlines():
+            if line.startswith(str(command)):
+                continue
+            if self._handle_prompt(line):
+                continue
+            #print line, type(line), command, type(command)
+            cleaned.append(line)
+        return "\n".join(cleaned)
+        
+    
     def _handle_errors(self, response):
         """look for errors"""
 

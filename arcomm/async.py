@@ -12,7 +12,7 @@ def _worker_init():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 # pylint: disable=R0913
-def _worker(host, creds, commands, results, protocol=None, timeout=None):
+def _worker(host, creds, commands, results, protocol=None, timeout=None, encoding="text"):
     """Common worker func. Logs into remote host, executes commands and puts the
     results in the queue. Called from `Pool` and `Background`"""
 
@@ -24,7 +24,7 @@ def _worker(host, creds, commands, results, protocol=None, timeout=None):
         if creds.authorize_password is not None:
             conn.authorize()
 
-        response = conn.execute(commands)
+        response = conn.execute(commands, encoding=encoding)
         conn.close()
     except ProtocolException as exc:
         errmsg = exc.message
@@ -42,7 +42,7 @@ class Pool(object):
         self._creds = creds
         self._commands = commands
         self._pool_size = pool_size
-        self._connect_kwargs = kwargs
+        self._worker_kwargs = kwargs
 
         self._results = Queue()
         self._pool = multiprocessing.Pool(self._pool_size, _worker_init)
@@ -63,7 +63,7 @@ class Pool(object):
         try:
             for host in self._hosts:
                 args = [host, self._creds, self._commands, self.results]
-                self._pool.apply_async(_worker, args, self._connect_kwargs)
+                self._pool.apply_async(_worker, args, self._worker_kwargs)
             self._pool.close()
         except KeyboardInterrupt:
             # create a new (empty) Queue
