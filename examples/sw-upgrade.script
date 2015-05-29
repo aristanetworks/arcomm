@@ -6,4 +6,4 @@ show ip interface brief
 configure
   boot system flash:{{image}}
 end
-reload now
+show boot-config

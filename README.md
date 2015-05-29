@@ -7,6 +7,9 @@ utility
 Installation
 ------------
 
+Note: Jinja2 is required for templating
+
+    pip install jinja2
     pip install git+https://github.com/aristanetworks/arcomm.git
 
 or
@@ -52,38 +55,61 @@ Console Usage
 Console Example
 ---------------
 
-    $ arcomm spine2a
-    Please enter username [jmather]:admin
-    Password for admin:
+    $ arcomm -u admin -p "" vn-leaf-1a
     Enter commands (one per line).
     Enter '.' alone to send or 'Crtl-C' to quit.
     > show clock
     > .
-    spine2a (command-api)>show clock
-    Fri Jul 25 05:32:51 2014
-    Timezone: UTC
-    Clock source: local
+    ---
+    host: vn-leaf-1a
+    commands:
+      - show clock: |
+          Fri May 29 06:34:14 2015
+          Timezone: UTC
+          Clock source: local
+    ...
 
 **or pipe in the commands...**
 
-    $ echo "show clock" | arcomm spine2a -u admin -p ""
-    spine2a (command-api)>show clock
-    Fri Jul 25 05:33:21 2014
-    Timezone: UTC
-    Clock source: local
+    $ echo "show version" | arcomm -u admin -p "" vn-leaf-1a
+    ---
+    host: vn-leaf-1a
+    commands:
+      - show version: |
+          Arista vEOS
+          Hardware version:    
+          Serial number:       
+          System MAC address:  000c.2944.288b
+      
+          Software image version: 4.15.0F
+          Architecture:           i386
+          Internal build version: 4.15.0F-2387143.4150F
+          Internal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9
+      
+          Uptime:                 8 hours and 2 minutes
+          Total memory:           2027964 kB
+          Free memory:            100532 kB
+      
+    ...
 
 **even multiple hosts in parallel...**
 
-    $ echo "show ip bgp summary | include {{filter}}" | \
-    > arcomm spine1a spine2a -u admin -p ""--variables='{"filter": "Active"}' \
-    > --authorize
-    spine2a >>> spine2a (command-api)#enable
-    spine2a (command-api)#show ip bgp summary | include Active
-    172.16.121.3     4  64521         0         0    0    0 13:07:17 Active
-
-    spine1a >>> spine1a (command-api)#enable
-    spine1a (command-api)#show ip bgp summary | include Active
-    172.16.111.3     4  64521         0         0    0    0 14:46:48 Active
+    $ echo "show clock" | arcomm -u admin -p "" vn-leaf-1a vn-leaf-2a
+    ---
+    host: vn-leaf-1a
+    commands:
+      - show clock: |
+          Fri May 29 06:34:48 2015
+          Timezone: UTC
+          Clock source: local
+    ---
+    host: vn-leaf-2a
+    commands:
+      - show clock: |
+          Fri May 29 06:34:52 2015
+          Timezone: UTC
+          Clock source: local
+    ...
 
 Multiple Switch Upgrade w/ Script Example
 ------------------------------------------
@@ -97,57 +123,97 @@ Multiple Switch Upgrade w/ Script Example
     configure
       boot system flash:{{image}}
     end
-    reload now
+    show boot-config
 
 Command-line w/ --variables argument:
 
-    $ arcomm spine1a spine2a -u admin -p "" -a "" \
-    > --script=sw-upgrade.script \
-    > --variables='{"image": "vEOS-4.14.3F.swi"}'
+    $ cat examples/sw-upgrade.script | arcomm vn-leaf-1a -u admin -p "" \
+      --variables='{"image": "vEOS-lab.swi"}' --protocol=eapi
+    ---
+    host: vn-leaf-1a
+    commands:
+      - dir flash:vEOS-lab.swi: |
+          Directory of flash:/vEOS-lab.swi
+      
+                 -rwx   234460332           Apr 20 09:40  vEOS-lab.swi
+      
+          1907843072 bytes total (1437716480 bytes free)
+      - show ip interface brief: |
+          Interface              IP Address         Status     Protocol         MTU
+          Ethernet1              172.16.19.1/31     up         up              1500
+          Ethernet2              172.16.18.1/31     up         up              1500
+          Loopback0              1.1.0.1/32         up         up             65535
+          Management1            172.16.130.21/24   up         up              1500
+      - configure: |
+
+      - boot system flash:vEOS-lab.swi: |
+
+      - end: |
+
+      - show boot-config: |
+          Software image: flash:/vEOS-lab.swi
+          Console speed: (not set)
+          Aboot password (encrypted): (not set)
+          Memory test iterations: (not set)
+    ...
 
 
 API Usage
 ---------
 
+    $ python
+    Python 2.7.10 (default, May 26 2015, 13:01:57) 
+    [GCC 4.2.1 Compatible Apple LLVM 6.1.0 (clang-602.0.53)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
     >>> import arcomm
-    >>> creds = arcomm.get_credentials(username="admin", password="",
-    ...                                authorize_password="s3cr3t")
-    >>> conn = arcomm.connect("spine2a", creds, protocol="capi")
-    >>> arcomm.execute(conn, "show version")
-
-    spine2a (command-api)>show version
-    Arista vEOS
-    Hardware version:
-    Serial number:
-    System MAC address:  000c.29c3.547a
-
-    Software image version: 4.13.0-1829814.41351F.1 (engineering build)
-    Architecture:           i386
-    Internal build version: 4.13.0-1829814.41351F.1
-    Internal build ID:      677d5a6b-0948-4590-913f-b27f83ca1a60
-
-    Uptime:                 44 minutes
-    Total memory:           2033084 kB
-    Free memory:            239136 kB
-
-    >>> # authorize to allow configure commands
-    >>> arcomm.authorize(conn)
-
-    >>> arcomm.configure(conn, ["interface range Et 1 - 4", "shutdown"])
-
-    spine2a (command-api)#{'input': 'secr3t', 'cmd': 'enable'}
-    spine2a (command-api)#configure
-    spine2a (command-api)#interface range Et 1 - 4
-    spine2a (command-api)#shutdown
-    spine2a (command-api)#end
-
-    >>> arcomm.configure(conn, ["interface range Et 1 - 4", "no shutdown"])
-
-    spine2a (command-api)#{'input': 'secr3t', 'cmd': 'enable'}
-    spine2a (command-api)#configure
-    spine2a (command-api)#interface range Et 1 - 4
-    spine2a (command-api)#no shutdown
-    spine2a (command-api)#end\n"
+    >>> creds = arcomm.get_credentials(username="admin", password="")
+    >>> conn = arcomm.connect("vn-leaf-2a", creds, protocol="eapi")
+    >>> conn.authorize()
     >>>
+    >>> responses = arcomm.execute(conn, "show version")
+    >>> print responses
+    #show version
+    Arista vEOS
+    Hardware version:    
+    Serial number:       
+    System MAC address:  000c.29d0.2356
 
+    Software image version: 4.15.0F
+    Architecture:           i386
+    Internal build version: 4.15.0F-2387143.4150F
+    Internal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9
+
+    Uptime:                 8 hours and 49 minutes
+    Total memory:           2027964 kB
+    Free memory:            106892 kB
+    >>>
+    >>> responses = arcomm.execute(conn, "show version", encoding="json")
+    >>> pp(responses.to_dict())
+    [{'show version': {u'architecture': u'i386',
+                       u'bootupTimestamp': 1432850726.49,
+                       u'hardwareRevision': u'',
+                       u'internalBuildId': u'1d97861d-09c7-4fc3-b38d-a98c99b77ae9',
+                       u'internalVersion': u'4.15.0F-2387143.4150F',
+                       u'memFree': 107076,
+                       u'memTotal': 2027964,
+                       u'modelName': u'vEOS',
+                       u'serialNumber': u'',
+                       u'systemMacAddress': u'00:0c:29:d0:23:56',
+                       u'version': u'4.15.0F'}}]
+    
+    >>> # eAPI over SSH!
+    >>> conn = arcomm.connect("vn-leaf-2a", creds, protocol="ssh")
+    >>> responses = arcomm.execute(conn, "show version", encoding="json")
+    >>> pp(responses.to_dict())
+    [{'show version': {u'architecture': u'i386',
+                       u'bootupTimestamp': 1432850726.49,
+                       u'hardwareRevision': u'',
+                       u'internalBuildId': u'1d97861d-09c7-4fc3-b38d-a98c99b77ae9',
+                       u'internalVersion': u'4.15.0F-2387143.4150F',
+                       u'memFree': 79392,
+                       u'memTotal': 2027964,
+                       u'modelName': u'vEOS',
+                       u'serialNumber': u'',
+                       u'systemMacAddress': u'00:0c:29:d0:23:56',
+                       u'version': u'4.15.0F'}}]
 
