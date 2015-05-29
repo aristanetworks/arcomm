@@ -34,19 +34,13 @@ def _makescript(path=None, variables=None):
             for line in sys.stdin:
                 script.append(line)
 
-    try:
-        # pylint: disable=import-error
+    if variables:
         import jinja2
-        replacements = {}
-        if variables:
-            replacements = json.loads(variables)
-
+        replacements = json.loads(variables)
         script = "\n".join(script)
         template = jinja2.Template(script)
         script = template.render(replacements)
         script = script.splitlines()
-    except ImportError:
-        pass
 
     return script
 
@@ -94,7 +88,6 @@ def main():
                             authorize_password=args.authorize_password)
 
     script = _makescript(args.script, args.variables)
-
     pool = execute_pool(args.hosts, creds, script, protocol=args.protocol,
                         timeout=args.timeout, encoding=args.encoding)
 

@@ -15,6 +15,8 @@ def to_list_of_commands(commands):
     _loc = []
     for _cmd in commands:
         if not isinstance(_cmd, Command):
+            if re.search("^(!|#)", _cmd) or re.search("^\s*$", _cmd):
+                continue
             _cmd = Command(_cmd.strip())
         _loc.append(_cmd)
     return _loc
