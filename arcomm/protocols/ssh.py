@@ -114,11 +114,11 @@ class Ssh(Protocol):
 
             if self._handle_prompt(window):
                 if errored_response:
-                    raise ExecuteFailed(errored_response)
+                    #print "raising error", errored_response
+                    raise ExecuteFailed(self._clean_response(command, errored_response))
                 else:
                     response = buff.getvalue()
-                    #print "RESPONSE:", response
-                    
+
                     response = self._clean_response(command, response)
                     
                     return json.loads(response) if encoding == "json" else response
@@ -130,7 +130,7 @@ class Ssh(Protocol):
                 continue
             if self._handle_prompt(line):
                 continue
-            #print line, type(line), command, type(command)
+
             cleaned.append(line)
         return "\n".join(cleaned)
         

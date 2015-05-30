@@ -2,6 +2,7 @@
 """Module for handling async communications"""
 
 import arcomm.protocol
+from arcomm.exceptions import ConnectFailed, AuthenticationFailed, AuthorizationFailed, ExecuteFailed
 import multiprocessing
 import time
 import signal
@@ -15,20 +16,23 @@ def _worker_init():
 def _worker(host, creds, commands, results, protocol=None, timeout=None, encoding="text"):
     """Common worker func. Logs into remote host, executes commands and puts the
     results in the queue. Called from `Pool` and `Background`"""
-
     response = None
     errmsg = None
+    
     try:
         conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
-
-        if creds.authorize_password is not None:
-            conn.authorize()
-
-        response = conn.execute(commands, encoding=encoding)
-        conn.close()
-    except ProtocolException as exc:
+    except (ConnectFailed, AuthenticationFailed) as exc:
         errmsg = exc.message
-
+    
+    if creds.authorize_password is not None:
+        try:
+            conn.authorize()
+        except AuthorizationFailed as exc:
+            errmsg = exc.message
+    if not errmsg:
+        response = conn.execute(commands, encoding=encoding)
+    
+    conn.close()
     results.put(dict(host=host, response=response, error=errmsg))
 
 class QueueError(Exception):

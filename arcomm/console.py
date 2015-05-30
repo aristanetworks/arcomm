@@ -44,7 +44,7 @@ def _makescript(path=None, variables=None):
 
     return script
 
-def indent(text, spaces=0):
+def indentblock(text, spaces=0):
     return "\n".join([" " * spaces + line for line in text.splitlines()])
 
 def main():
@@ -102,8 +102,12 @@ def main():
             print "host: {}".format(host)
             print "commands:"
             for response in responses:
-                print "  - {}: |".format(response.command)
-                print indent(response.data, spaces=6)
+                print "  - command: {}".format(response.command)
+                print "    output: |"
+                print indentblock(response.output, spaces=6)
+                if response.error:
+                    print "    errors: |"
+                    print indentblock(response.error, spaces=6)
     print "..."
 
 if __name__ == "__main__":

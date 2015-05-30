@@ -5,7 +5,7 @@ import re
 import json
 from .command import Command
 from .util import to_list
-from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed
+from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed, ExecuteFailed
 DEFAULT_PROTOCOL = ["eapi", "ssh"]
 DEFAULT_TIMEOUT = 30
 
@@ -23,9 +23,10 @@ def to_list_of_commands(commands):
 
 class Response(object):
     """Store a single response"""
-    def __init__(self, command, data):
+    def __init__(self, command, output, error=None):
         self._command = command
-        self._data = data
+        self._output = output
+        self._error = error
 
     @property
     def command(self):
@@ -33,17 +34,28 @@ class Response(object):
         return self._command
 
     @property
-    def data(self):
+    def output(self):
         """data returned from the command"""
-        return self._data
+        return self._output
+
+    @property
+    def error(self):
+        return self._error
+
+    @property
+    def errors(self):
+        return to_list(self.error)
 
     def __contains__(self, item):
-        return item in self._data
+        return item in self._output
 
     def __str__(self):
         """return the data from the response as a string"""
-        return self._data
-
+        return self._output
+    
+    def to_dict(self):
+        return {"command": str(self.command), "output": self.output, "errors": self.errors}
+    
 class ResponseStore(object):
     """List-like object for storing responses"""
     def __init__(self):
@@ -59,7 +71,7 @@ class ResponseStore(object):
         str_ = ""
         for response in self._store:
             str_ += "#{}\n{}\n".format(str(response.command).strip(),
-                                       response.data)
+                                       response.output)
         return str_
 
     def __contains__(self, item):
@@ -69,7 +81,7 @@ class ResponseStore(object):
     @property
     def responses(self):
         """returns the response data from each response"""
-        return [response.data for response in self._store]
+        return [response.output for response in self._store]
 
     @property
     def commands(self):
@@ -78,7 +90,6 @@ class ResponseStore(object):
 
     def append(self, item):
         """adds a response item to the list"""
-
         if not isinstance(item, Response):
             item = Response(*item)
         self._store.append(item)
@@ -106,7 +117,7 @@ class ResponseStore(object):
     def to_dict(self):
         data = []
         for response in self._store:
-            data.append({str(response.command): response.data})
+            data.append(response.to_dict())
         return data
         
     def to_json(self, *args, **kwargs):
@@ -240,30 +251,39 @@ class Protocol(object):
 
     def execute(self, commands, **kwargs):
         """Execute a command or series of commmands on a remote host"""
+
         self._responses.flush()
+
         commands = to_list_of_commands(commands)
 
         responses = self._sendall(commands, **kwargs) or []
+        
         if not responses:
             for command in commands:
-                response = self._send(command, **kwargs)
-                responses.append(response)
+                response = None
+                error = None
+                try:
+                    response = self._send(command, **kwargs)
+                except ExecuteFailed as exc:
+                    error = exc.message
+                responses.append((response, error))
+                if error:
+                    break
 
         if not responses:
             raise NotImplementedError(("_send or _sendall must be defined in "
                                        "subclass"))
-        #print responses
-    
-        self._handle_respones(commands, responses)
-        
+
+        for command, response in zip(commands, responses):
+            if isinstance(response, basestring):
+                response = (response, None)
+            self._responses.append((command,) + response)
+
         return self._responses
 
     def _handle_respones(self, commands, responses):
         """fill responses from two lists of commands and responses"""
-        items = zip(commands, responses)
-        for command, response in items:
-            self._responses.append((command, response))
-    
+
     def filter_responses(self, value=""):
         """Filter to response to those commands that match the pattern"""
         filtered = []

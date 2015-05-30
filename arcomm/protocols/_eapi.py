@@ -67,6 +67,9 @@ class _Eapi(object):
 
     def _send(self, data):
         """send the request data to the host and return the response"""
+        
+        
+        
         header = {'Content-Type': 'application/json'}
         req = urllib2.Request(self.uri, data, header)
         
@@ -74,13 +77,8 @@ class _Eapi(object):
             response = self.http(req)
         except urllib2.URLError as exc:
             raise _EapiException("Error: {}".format(exc.message))
-
+        
         data = json.loads(response.read())
-
-        if "error" in data:
-            _message = data["error"]["message"]
-            _code = data["error"]["code"]
-            raise _EapiException("Error [{}]: {}".format(_code, _message))
 
         return data
 
