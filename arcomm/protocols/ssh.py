@@ -114,8 +114,8 @@ class Ssh(Protocol):
 
             if self._handle_prompt(window):
                 if errored_response:
-                    #print "raising error", errored_response
-                    raise ExecuteFailed(self._clean_response(command, errored_response))
+                    print "raising error", errored_response
+                    raise ExecuteFailed(errored_response)
                 else:
                     response = buff.getvalue()
                     
