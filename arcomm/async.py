@@ -2,7 +2,8 @@
 """Module for handling async communications"""
 
 import arcomm.protocol
-from arcomm.exceptions import ConnectFailed, AuthenticationFailed, AuthorizationFailed, ExecuteFailed
+from arcomm.exceptions import ConnectFailed, AuthenticationFailed, \
+                              AuthorizationFailed, ExecuteFailed
 import multiprocessing
 import time
 import signal
@@ -18,12 +19,12 @@ def _worker(host, creds, commands, results, protocol=None, timeout=None, encodin
     results in the queue. Called from `Pool` and `Background`"""
     response = None
     errmsg = None
-    
+
     try:
         conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
     except (ConnectFailed, AuthenticationFailed) as exc:
         errmsg = exc.message
-    
+
     if creds.authorize_password is not None:
         try:
             conn.authorize()
@@ -31,7 +32,7 @@ def _worker(host, creds, commands, results, protocol=None, timeout=None, encodin
             errmsg = exc.message
     if not errmsg:
         response = conn.execute(commands, encoding=encoding)
-    
+
     conn.close()
     results.put(dict(host=host, response=response, error=errmsg))
 
@@ -47,8 +48,8 @@ class Pool(object):
         self._commands = commands
         self._pool_size = pool_size
         self._worker_kwargs = kwargs
-
         self._results = Queue()
+        self._async_result = None
         self._pool = multiprocessing.Pool(self._pool_size, _worker_init)
 
     @property
@@ -67,7 +68,7 @@ class Pool(object):
         try:
             for host in self._hosts:
                 args = [host, self._creds, self._commands, self.results]
-                self._pool.apply_async(_worker, args, self._worker_kwargs)
+                self._async_result = self._pool.apply_async(_worker, args, self._worker_kwargs)
             self._pool.close()
         except KeyboardInterrupt:
             # create a new (empty) Queue
@@ -79,13 +80,17 @@ class Pool(object):
         """Bring the pool into the current process (Blocking) and wait for jobs
         to complte.  Also, close the results queue before returning"""
         self._pool.join()
-        self._results.close()
+        self._finish()
 
     def kill(self):
         """Terminate the pool and empty the queue"""
         self._pool.terminate()
         self._results = Queue()
+        self._finish()
+    
+    def _finish(self):
         self._results.close()
+        self._async_result.get()
 
 class Background(object):
     """Runs a script on a single host in the background"""

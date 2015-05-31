@@ -118,7 +118,7 @@ class Ssh(Protocol):
                     raise ExecuteFailed(self._clean_response(command, errored_response))
                 else:
                     response = buff.getvalue()
-
+                    
                     response = self._clean_response(command, response)
                     
                     return json.loads(response) if encoding == "json" else response

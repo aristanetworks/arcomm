@@ -45,7 +45,8 @@ def _makescript(path=None, variables=None):
     return script
 
 def indentblock(text, spaces=0):
-    return "\n".join([" " * spaces + line for line in text.splitlines()])
+    text = text.splitlines() if hasattr(text, "splitlines") else []
+    return "\n".join([" " * spaces + line for line in text])
 
 def main():
     """Main routine"""
