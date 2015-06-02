@@ -92,7 +92,10 @@ def main():
     pool = execute_pool(args.hosts, creds, script, protocol=args.protocol,
                         timeout=args.timeout, encoding=args.encoding)
 
-    for host, responses in pool:
+    for result in pool:
+        host = result["host"]
+        responses = result["response"]
+        #error = result["error"]
         print "---"
         if args.encoding == "json":
             print json.dumps({
