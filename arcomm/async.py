@@ -14,24 +14,20 @@ def _worker_init():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 # pylint: disable=R0913
-def _worker(host, creds, commands, results, protocol=None, timeout=None, encoding="text"):
-    """Common worker func. Logs into remote host, executes commands and puts the
-    results in the queue. Called from `Pool` and `Background`"""
+def _worker(host, creds, commands, results, protocol=None, timeout=None,
+            encoding="text"):
+    """Common worker func. Logs into remote host, executes commands and puts
+    the results in the queue. Called from `Pool` and `Background`"""
     response = None
     errmsg = None
 
     try:
         conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
-    except (ConnectFailed, AuthenticationFailed) as exc:
-        errmsg = exc.message
-
-    if creds.authorize_password is not None:
-        try:
+        if creds.authorize_password is not None:
             conn.authorize()
-        except AuthorizationFailed as exc:
-            errmsg = exc.message
-    if not errmsg:
         response = conn.execute(commands, encoding=encoding)
+    except (ConnectFailed, AuthenticationFailed, AuthorizationFailed) as exc:
+        errmsg = exc.message
 
     conn.close()
     results.put(dict(host=host, response=response, error=errmsg))
@@ -52,6 +48,13 @@ class Pool(object):
         self._async_result = None
         self._pool = multiprocessing.Pool(self._pool_size, _worker_init)
 
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.join()
+
     @property
     def results(self):
         """Returns the results queue"""
@@ -68,7 +71,8 @@ class Pool(object):
         try:
             for host in self._hosts:
                 args = [host, self._creds, self._commands, self.results]
-                self._async_result = self._pool.apply_async(_worker, args, self._worker_kwargs)
+                self._async_result = self._pool.apply_async(_worker, args,
+                                                            self._worker_kwargs)
             self._pool.close()
         except KeyboardInterrupt:
             # create a new (empty) Queue
