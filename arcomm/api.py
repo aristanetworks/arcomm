@@ -92,7 +92,7 @@ def execute(connection, commands, **kwargs):
     """Execute a command or series of commands and return the results"""
     return connection.execute(commands, **kwargs)
 
-def execute_bg(host, creds, commands, **kwargs):
+def execute_bg(connection, commands, **kwargs):
     """Returns a command ready to be run in the background
     example:
 
@@ -102,9 +102,19 @@ def execute_bg(host, creds, commands, **kwargs):
     proc.join()
     for result in proc.results:
         print result
+        
+    - better -
+    
+    with execute_bg(host, creds, "show version") as proc:
+        # do other stuff...
+    
+    for result in proc.results:
+        print result
     """
-    proc = async.Background(host, creds=creds, commands=commands, **kwargs)
-    return proc
+    
+    
+    return create_pool([connection.host], creds=connection.creds,
+                       commands=commands, **kwargs)
 
 def execute_once(host, creds, commands):
     """Executes a single command and closes the connection"""
