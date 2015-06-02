@@ -73,10 +73,11 @@ class Pool(object):
                 args = [host, self._creds, self._commands, self.results]
                 self._async_result = self._pool.apply_async(_worker, args,
                                                             self._worker_kwargs)
+                self._async_result.get(2**32)
             self._pool.close()
         except KeyboardInterrupt:
-            # create a new (empty) Queue
-            self._results = Queue()
+            self.kill()
+            raise
 
         time.sleep(sleep)
 
@@ -94,54 +95,7 @@ class Pool(object):
     
     def _finish(self):
         self._results.close()
-        self._async_result.get()
-
-class Background(object):
-    """Runs a script on a single host in the background"""
-
-    def __init__(self, host, creds, commands, **kwargs):
-        self._results = Queue()
-        args = (host, creds, commands, self._results)
-        self._process = multiprocessing.Process(target=_worker, args=args,
-                                                kwargs=kwargs)
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, exctype, value, traceback):
-        self.join()
-
-    @property
-    def results(self):
-        """Returns the results queue"""
-        return self._results
-
-    def get(self):
-        """Get an item from the results queue"""
-        if hasattr(self._results, "get"):
-            return self._results.get()
-
-    def join(self, timeout=None):
-        """Bring the job back into the current process.  Wait until job finishes
-        or timeout expires"""
-        self._process.join(timeout)
-        self._results.close()
-        return self._process.exitcode
-
-    def kill(self):
-        """End the job now"""
-        if self._process.is_alive():
-            self._process.terminate()
-
-        #self._results = Queue()
-        self._results.close()
-        return self._process.exitcode
-
-    def start(self, sleep=0):
-        """Start the process and fork into the background"""
-        self._process.start()
-        time.sleep(sleep)
+        #self._async_result.get()
 
 class Queue(object):
     """Simple queue that can be passed between processes"""
