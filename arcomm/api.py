@@ -118,8 +118,8 @@ def execute_pool(hosts, creds, commands, **kwargs):
     asynchronously"""
     pool = create_pool(hosts=hosts, creds=creds, commands=commands, **kwargs)
     pool.run()
-    for result in pool.results:
-        yield (result.get("host"), result.get("response"))
+    for item in pool.results:
+        yield item
 
 def execute_until(connection, commands, condition, timeout=30, sleep=5,
                   exclude=False):
