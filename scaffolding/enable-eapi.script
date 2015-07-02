@@ -1,0 +1,12 @@
+configure
+management api http-commands
+   no protocol https
+   protocol http
+   no shutdown
+   no vrf managment
+   vrf management
+       no shutdown
+       exit
+   exit
+end
+write
