@@ -23,13 +23,15 @@ def _worker(host, creds, commands, results, protocol=None, timeout=None,
 
     try:
         conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
-        if creds.authorize_password is not None:
-            conn.authorize()
-        response = conn.execute(commands, encoding=encoding)
+        try:
+            if creds.authorize_password is not None:
+                conn.authorize()
+            response = conn.execute(commands, encoding=encoding)
+        finally:
+            conn.close()
     except (ConnectFailed, AuthenticationFailed, AuthorizationFailed) as exc:
         errmsg = exc.message
-
-    conn.close()
+    
     results.put(dict(host=host, response=response, error=errmsg))
 
 class QueueError(Exception):
