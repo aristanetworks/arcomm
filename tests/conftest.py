@@ -3,7 +3,7 @@ import pytest
 import arcomm
 def pytest_addoption(parser):
     group = parser.getgroup("arcomm", "Arcomm testing options")
-    group.addoption("--host", metavar="HOST",
+    group.addoption("--host", metavar="HOST", action="append",
                     help="Host to use for testing")
     group.addoption("--username", metavar="USERNAME", default="admin",
                     help="Specifies username on host")
@@ -14,9 +14,14 @@ def pytest_addoption(parser):
                          "reports, but don't run any test cases"))
 
 @pytest.fixture(scope="session")
-def host(request):
+def hosts(request):
     """Host hostname or IP address"""
     return request.config.getoption("--host")
+
+@pytest.fixture(scope="function")
+def host(request, hosts):
+    """Host hostname or IP address"""
+    return hosts[0]
 
 @pytest.fixture(scope="session")
 def password(request):

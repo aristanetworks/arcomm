@@ -12,16 +12,14 @@ import pytest
 #     assert bg.results.closed, "Queue did not close correctly"
 
 @pytest.mark.parametrize("protocol,encoding", [
-    ("ssh", "text"),
-    ("ssh", "json"),
-    ("eapi", "text"),
-    ("eapi", "json")
+    ("ssh", "text"), ("ssh", "json"), ("eapi", "text"), ("eapi", "json")
 ])
-def test_pool_with(creds, host, protocol, encoding):
+def test_pool_with(creds, hosts, protocol, encoding):
     commands = ["show version", "show clock"]
-    with arcomm.async.Pool([host], creds=creds, commands=commands,
+    with arcomm.async.Pool(hosts, creds=creds, commands=commands,
                            protocol=protocol, encoding=encoding) as pool:
         time.sleep(1)
     
     for result in pool.results:
+        #print result.get("response"), result.get("error")
         assert "response" in result, "No response in result"
