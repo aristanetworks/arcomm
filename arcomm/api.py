@@ -111,8 +111,6 @@ def execute_bg(connection, commands, **kwargs):
     for result in proc.results:
         print result
     """
-    
-    
     return create_pool([connection.host], creds=connection.creds,
                        commands=commands, **kwargs)
 
