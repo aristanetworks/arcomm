@@ -102,12 +102,12 @@ def execute_bg(connection, commands, **kwargs):
     proc.join()
     for result in proc.results:
         print result
-        
+
     - better -
-    
+
     with execute_bg(host, creds, "show version") as proc:
         # do other stuff...
-    
+
     for result in proc.results:
         print result
     """
@@ -140,7 +140,7 @@ def execute_until(connection, commands, condition, timeout=30, sleep=5,
     response = None
     while (check_time - timeout) < start_time:
         response = execute(connection, commands)
-        _match = re.search(re.compile(condition), response)
+        _match = re.search(re.compile(condition), str(response))
         if exclude:
             if not _match:
                 return response
