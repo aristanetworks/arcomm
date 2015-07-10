@@ -1,6 +1,9 @@
 import pytest
 #from arcomm import Creds
 import arcomm
+
+PROTOCOLS = ["ssh", "eapi"]
+
 def pytest_addoption(parser):
     group = parser.getgroup("arcomm", "Arcomm testing options")
     group.addoption("--host", metavar="HOST", action="append",
@@ -18,7 +21,7 @@ def hosts(request):
     """Host hostname or IP address"""
     return request.config.getoption("--host")
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def host(request, hosts):
     """Host hostname or IP address"""
     return hosts[0]
@@ -46,3 +49,7 @@ def creds(request):
     authorize_password = request.config.getoption("--authorize-password")
     return arcomm.get_credentials(username=username, password=password,
                  authorize_password=authorize_password)
+
+@pytest.fixture(scope="module", params=PROTOCOLS)
+def connection(host, creds, request):
+    return arcomm.connect(host, creds, protocol=request.param)

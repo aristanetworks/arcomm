@@ -2,16 +2,6 @@
 import arcomm
 import pytest
 
-# @pytest.mark.parametrize("protocol,timeout", [
-#     ("ssh", 30),
-#     ("capi", 30)
-# ])
-#def test_connect(proto, timeout, device, creds):
-PROTOCOLS = ["ssh", "capi"]
-@pytest.fixture(scope="module", params=PROTOCOLS)
-def connection(host, creds, request):
-    return arcomm.connect(host, creds, protocol=request.param)
-
 def test_authorize(connection, authorize_password):
     arcomm.authorize(connection, secret=authorize_password)
     assert arcomm.authorized(connection)
@@ -59,11 +49,12 @@ def test_clone(connection, host, creds, protocol, timeout):
 # def test_execute_pool():
 #     arcomm.execute_pool(hosts, creds, commands, **kwargs)
 #
-# def test_execute_until():
-#     arcomm.execute_until(connection, commands, condition, timeout=30, sleep=5,
-#                   exclude=False)
+def test_execute_until(connection):
+    commands = ["show version"]
+    condition = r"i386"
+    arcomm.execute_until(connection, commands, condition, timeout=30, sleep=5,
+                  exclude=False)
 #
 # def test_get_credentials():
 #     arcomm.get_credentials(username, password="", authorize_password=None,
 #                     private_key=None)
-
