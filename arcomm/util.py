@@ -17,10 +17,14 @@ def to_multiline_string(data, end_of_line="\r\n"):
         data = end_of_line.join(data)
 
     return data
-    
+
 def dictmerge(*args):
     """Merge dictionarys"""
     result = {}
     for dict_ in args:
         result = dict(list(result.items()) + list(dict_.items()))
     return result
+
+def indentblock(text, spaces=0):
+    text = text.splitlines() if hasattr(text, "splitlines") else []
+    return "\n".join([" " * spaces + line for line in text])

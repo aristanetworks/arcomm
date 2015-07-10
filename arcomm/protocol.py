@@ -4,7 +4,7 @@
 import re
 import json
 from .command import Command
-from .util import to_list
+from .util import to_list, indentblock
 from .exceptions import ProtocolException, AuthorizationFailed, ConnectFailed, ExecuteFailed
 DEFAULT_PROTOCOL = ["eapi", "ssh"]
 DEFAULT_TIMEOUT = 30
@@ -52,10 +52,10 @@ class Response(object):
     def __str__(self):
         """return the data from the response as a string"""
         return self._output
-    
+
     def to_dict(self):
         return {"command": str(self.command), "output": self.output, "errors": self.errors}
-    
+
 class ResponseStore(object):
     """List-like object for storing responses"""
     def __init__(self):
@@ -119,10 +119,20 @@ class ResponseStore(object):
         for response in self._store:
             data.append(response.to_dict())
         return data
-        
+
     def to_json(self, *args, **kwargs):
         return json.dumps(self.to_dict(), *args, **kwargs)
 
+    def to_yaml(self, *args, **kwargs):
+        yml = "commands:"
+        for response in responses:
+            yml += "  command: {}".format(response.command)
+            yml += "    output: |"
+            yml += indentblock(response.output, spaces=4)
+            if response.error:
+                yml += "    errors: |"
+                yml += indentblock(response.error, spaces=4)
+        return yml
 class Protocol(object):
     """Base class for protocol adapters"""
     def __init__(self, host, creds, timeout=None, **kwargs):
@@ -138,7 +148,7 @@ class Protocol(object):
 
     def __enter__(self):
         self.connect()
-    
+
     def __exit__(self, type, value, tb):
         self.close()
 
@@ -257,7 +267,7 @@ class Protocol(object):
         commands = to_list_of_commands(commands)
 
         responses = self._sendall(commands, **kwargs) or []
-        
+
         if not responses:
             for command in commands:
                 response = None
