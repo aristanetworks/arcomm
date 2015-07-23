@@ -15,23 +15,25 @@ def _worker_init():
 
 # pylint: disable=R0913
 def _worker(host, creds, commands, results, protocol=None, timeout=None,
-            encoding="text"):
+            **kwargs):
     """Common worker func. Logs into remote host, executes commands and puts
     the results in the queue. Called from `Pool` and `Background`"""
     response = None
     errmsg = None
+
+    #encoding = kwargs.get("encoding", "text")
 
     try:
         conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
         try:
             if creds.authorize_password is not None:
                 conn.authorize()
-            response = conn.execute(commands, encoding=encoding)
+            response = conn.execute(commands, **kwargs)
         finally:
             conn.close()
     except (ConnectFailed, AuthenticationFailed, AuthorizationFailed) as exc:
         errmsg = exc.message
-    
+
     results.put(dict(host=host, response=response, error=errmsg))
 
 class QueueError(Exception):
@@ -94,7 +96,7 @@ class Pool(object):
         self._pool.terminate()
         self._results = Queue()
         self._finish()
-    
+
     def _finish(self):
         self._results.close()
         #self._async_result.get()
