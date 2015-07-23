@@ -62,16 +62,10 @@ def connect_uri(uri, **kwargs):
 
 def create_uri(host, protocol, username, password, port):
     """Create a URI from given parts"""
-
     creds = get_credentials(username=username, password=password)
-    credspart = creds.username
-    if creds.password:
-        credspart += ":{}".format(creds.password)
-
+    credspart = "{}:{}".format(creds.username, creds.password)
     portpart = ":{}".format(port) if port else ""
-
-    uri = "{}://{}@{}{}".format(protocol, host, credspart, portpart)
-
+    uri = "{}://{}@{}{}".format(protocol, credspart, host, portpart)
     return uri
 
 def create_pool(hosts, creds, commands, **kwargs):
