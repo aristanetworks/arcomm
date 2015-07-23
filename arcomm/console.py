@@ -59,7 +59,8 @@ def main():
     arg("--protocol", default=["eapi", "ssh"],
         help=("Set the default protocol or protocols. If more than one is "
               "supplied, they will be tried in order"))
-    arg("--encoding", default="text", help="accepts 'text' or 'json'")
+    arg("--encoding", default="text", choices=["json", "text"],
+        help="Control output formatting")
     arg("-u", "--username", help="Specifies the username on the switch")
     arg("-p", "--password",
         help=("Specifies users password.  If not supplied, the user will be "
@@ -95,25 +96,33 @@ def main():
     for result in pool:
         host = result["host"]
         responses = result["response"]
-        #error = result["error"]
-        print "---"
+        error = result["error"]
+
         if args.encoding == "json":
-            print json.dumps({
-                  "host": host,
-                  "commands": responses.to_dict()
-            }, indent=4, separators=(',', ': '))
+            result = {"host": host}
+            if error:
+                result["error"] = error
+            if hasattr(responses, "to_dict"):
+                result["commands"] = responses.to_dict()
+            print json.dumps(result, indent=4, separators=(',', ': '))
         else:
+            print "---"
             print "host: {}".format(host)
-            print "commands:"
-            for response in responses:
-                print "  - command: {}".format(response.command)
-                print "    output: |"
-                print indentblock(response.output, spaces=6)
-                if response.error:
-                    print "    errors: |"
-                    print indentblock(response.error, spaces=6)
-    print "..."
+            if error:
+                print "error: |"
+                print indentblock(error, spaces=2)
+            else:
+                print "commands:"
+                for response in responses:
+                    print "  - command: {}".format(response.command)
+                    print "    output: |"
+                    print indentblock(response.output, spaces=6)
+                    if response.error:
+                        print "    errors: |"
+                        print indentblock(response.error, spaces=6)
+
+    if args.encoding == "text":
+        print "..."
 
 if __name__ == "__main__":
     main()
-
