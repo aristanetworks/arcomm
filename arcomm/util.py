@@ -10,6 +10,8 @@ def to_list(data):
         return [data]
     else:
         return []
+
+
 def to_multiline_string(data, end_of_line="\r\n"):
     """Return a string from a list"""
 
@@ -28,3 +30,15 @@ def dictmerge(*args):
 def indentblock(text, spaces=0):
     text = text.splitlines() if hasattr(text, "splitlines") else []
     return "\n".join([" " * spaces + line for line in text])
+
+def to_commands(commands):
+    """Converts a command or list of commands to a list of Command objects"""
+    commands = to_list(commands)
+    _loc = []
+    for _cmd in commands:
+        if not isinstance(_cmd, Command):
+            if re.search("^(!|#)", _cmd) or re.search("^\s*$", _cmd):
+                continue
+            _cmd = Command(_cmd.strip())
+        _loc.append(_cmd)
+    return _loc
