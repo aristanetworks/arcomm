@@ -31,28 +31,14 @@ class Eapi(Protocol):
         """returns a _Eapi object, no connection is made at this time"""
         return _Eapi(host, username=creds.username, password=creds.password,
                      enable=creds.authorize_password, use_ssl=self._use_ssl,
-                     port=self._port) #, encoding=self._encoding,
-                     #timestamps=self._timestamps)
-
-    # def _format_response(self, commands, responses):
-    #     """Format the command response to look like an interactive session"""
-    #
-    #     formatted = []
-    #     # make a fake prompt
-    #     prompt = "{} (command-api){}".format(self.host, self._marker)
-    #
-    #     for command, response in zip(commands, responses):
-    #         command = command.get("cmd")
-    #         response = "{}{}\n{}".format(prompt, command, response)
-    #         formatted.append(response)
-    #     return formatted
+                     port=self._port)
 
     def _sendall(self, commands, encoding="text", timestamps=False):
         """Send all commands in one request. Eapi track conext (enabled? or
         configured?, etc...)
-        
+
         JSON OK:
-        
+
         {u'id': u'arcomm.protocols._Eapi',
          u'jsonrpc': u'2.0',
          u'result': [{u'architecture': u'i386',
@@ -66,15 +52,15 @@ class Eapi(Protocol):
                       u'serialNumber': u'',
                       u'systemMacAddress': u'00:0c:29:44:28:8b',
                       u'version': u'4.15.0F'}]}
-        
+
         TEXT OK:
-        
+
         {u'id': u'arcomm.protocols._Eapi',
          u'jsonrpc': u'2.0',
          u'result': [{u'output': u'Arista vEOS\nHardware version:    \nSerial number:       \nSystem MAC address:  000c.2944.288b\n\nSoftware image version: 4.15.0F\nArchitecture:           i386\nInternal build version: 4.15.0F-2387143.4150F\nInternal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9\n\nUptime:                 15 hours and 11 minutes\nTotal memory:           2027964 kB\nFree memory:            118656 kB\n\n'}]}
-        
+
         JSON ERROR:
-        
+
         {u'error': {u'code': 1002,
                     u'data': [{u'architecture': u'i386',
                                u'bootupTimestamp': 1432852261.69,
@@ -91,10 +77,10 @@ class Eapi(Protocol):
                     u'message': u"CLI command 2 of 2 'show bogus command' failed: invalid command"},
          u'id': u'arcomm.protocols._Eapi',
          u'jsonrpc': u'2.0'}
-        
-        
+
+
         TEXT ERROR:
-        
+
         {u'error': {u'code': 1002,
                     u'data': [{u'output': u'Arista vEOS\nHardware version:    \nSerial number:       \nSystem MAC address:  000c.2944.288b\n\nSoftware image version: 4.15.0F\nArchitecture:           i386\nInternal build version: 4.15.0F-2387143.4150F\nInternal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9\n\nUptime:                 15 hours and 10 minutes\nTotal memory:           2027964 kB\nFree memory:            118492 kB\n\n'},
                               {u'errors': [u"Invalid input (at token 1: 'bogus')"],
@@ -102,10 +88,10 @@ class Eapi(Protocol):
                     u'message': u"CLI command 2 of 2 'show bogus command' failed: invalid command"},
          u'id': u'arcomm.protocols._Eapi',
          u'jsonrpc': u'2.0'}
-        
-        
+
+
         SHOULD RETURN
-        
+
         [({u'architecture': u'i386',
            u'bootupTimestamp': 1432852261.68,
            u'hardwareRevision': u'',
