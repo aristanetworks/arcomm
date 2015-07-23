@@ -1,5 +1,5 @@
 #!/bin/bash
-apt-get install -y build-essential python-pip python-paramiko python-pytest
+apt-get install -y build-essential python-pip python-paramiko python-pytest git
 cd /vagrant; python setup.py develop
 
 if ! grep -q vswitch /etc/hosts; then
