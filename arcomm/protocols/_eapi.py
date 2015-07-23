@@ -14,12 +14,13 @@ class _Eapi(object):
     __protocol = None
     __uri = None
 
-    def __init__(self, host, username, password="", enable="", use_ssl=False, port=None):
+    def __init__(self, host, username, password="", enable="", use_ssl=False,
+                 port=None):
         self.eapi_id = "arcomm.protocols." + self.__class__.__name__
         self.host = host
         self.user = username
         self.password = password
-        self.enable_pass = enable
+        self.enable_pass = enable or ""
         self.enabled = False
         self.protocol = "http" if not use_ssl else "https"
         self.port = port or (80 if self.protocol == "http" else 443)
@@ -98,4 +99,3 @@ class _Eapi(object):
         if self.enabled:
             response["result"].pop(0)
         return response
-
