@@ -53,3 +53,12 @@ def creds(request):
 @pytest.fixture(scope="module", params=PROTOCOLS)
 def connection(host, creds, request):
     return arcomm.connect(host, creds, protocol=request.param)
+
+
+@pytest.fixture(scope="session")
+def exec_commands():
+    return ["show version", "show clock"]
+
+@pytest.fixture(scope="session")
+def configure_commands():
+    return ["ip host dummy 127.0.0.1", "ping dummy", "no ip host dummy"]
