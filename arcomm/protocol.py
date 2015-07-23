@@ -58,8 +58,10 @@ class Response(object):
 
 class ResponseStore(object):
     """List-like object for storing responses"""
-    def __init__(self):
+
+    def __init__(self, **kwargs):
         self._store = list()
+        self._keywords = kwargs
 
     def __iter__(self):
         return iter(self._store)
@@ -68,9 +70,10 @@ class ResponseStore(object):
         return self._store[item]
 
     def __str__(self):
+        host = self._keywords.get("host", "switch")
         str_ = ""
         for response in self._store:
-            str_ += "#{}\n{}\n".format(str(response.command).strip(),
+            str_ += "{}#{}\n{}\n".format(host, str(response.command).strip(),
                                        response.output)
         return str_
 
@@ -124,15 +127,17 @@ class ResponseStore(object):
         return json.dumps(self.to_dict(), *args, **kwargs)
 
     def to_yaml(self, *args, **kwargs):
-        yml = "commands:"
-        for response in responses:
-            yml += "  command: {}".format(response.command)
-            yml += "    output: |"
-            yml += indentblock(response.output, spaces=4)
+        yml = "---\ncommands:\n"
+        for response in self._store:
+            yml += "  -\n"
+            yml += "    command: {}\n".format(response.command)
+            yml += "    output: |\n"
+            yml += indentblock(response.output, spaces=8)
             if response.error:
-                yml += "    errors: |"
-                yml += indentblock(response.error, spaces=4)
+                yml += "    errors: |\n"
+                yml += indentblock(response.error, spaces=8)
         return yml
+
 class Protocol(object):
     """Base class for protocol adapters"""
     def __init__(self, host, creds, timeout=None, **kwargs):
@@ -143,7 +148,7 @@ class Protocol(object):
         self._connection = None
         self._authorized = False
         self._keywords = kwargs
-        self._responses = ResponseStore()
+        self._responses = ResponseStore(host=self._host)
         self._on_initialize(**kwargs)
 
     def __enter__(self):
@@ -277,8 +282,8 @@ class Protocol(object):
                 except ExecuteFailed as exc:
                     error = exc.message
                 responses.append((response, error))
-                if error:
-                    break
+                #if error:
+                #    break
 
         if not responses:
             raise NotImplementedError(("_send or _sendall must be defined in "
@@ -311,7 +316,7 @@ def _load_protocol(protocol_name):
     # Finally, we retrieve the Class
     return getattr(module, _class_name)
 
-def factory_connect(host, creds, protocol=None, timeout=None):
+def factory_connect(host, creds, protocol=None, timeout=None, **kwargs):
     """Proxy funcion to load and instantiate protocols"""
 
     protocols = protocol or DEFAULT_PROTOCOL
@@ -324,7 +329,7 @@ def factory_connect(host, creds, protocol=None, timeout=None):
     for _protocol in protocols:
         try:
             _protocol_cls = _load_protocol(_protocol)
-            _obj = _protocol_cls(host, creds, timeout)
+            _obj = _protocol_cls(host, creds, timeout, **kwargs)
             _obj.connect()
             return _obj
         except ConnectFailed as exc:
