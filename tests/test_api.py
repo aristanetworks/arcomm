@@ -50,7 +50,11 @@ def test_execute(connection, exec_commands):
 
 @pytest.mark.parametrize("protocol,timeout", [("ssh", 30), ("eapi", 30)])
 def test_execute_bg(connection, exec_commands, protocol, timeout):
-    arcomm.execute_bg(connection, exec_commands, protocol, timeout)
+    with arcomm.execute_bg(connection, ["bash sleep 10"], protocol=protocol, timeout=timeout) as proc:
+        print "Commands running in background..."
+
+    for result in proc.results:
+        print result
 
 def test_execute_once(host, creds, exec_commands):
     arcomm.execute_once(host, creds, exec_commands)

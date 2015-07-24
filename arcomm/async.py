@@ -50,6 +50,7 @@ class Pool(object):
         self._worker_kwargs = kwargs
         self._results = Queue()
         self._async_result = None
+        self._background = None
         self._pool = multiprocessing.Pool(self._pool_size, _worker_init)
 
     def __enter__(self):
@@ -64,12 +65,28 @@ class Pool(object):
         """Returns the results queue"""
         return self._results
 
+    @property
+    def background(self):
+        return self._background
+
+    @background.setter
+    def background(self, value):
+        self._background = True if value else False
+
     def run(self):
         """Run commands on the hosts"""
         self.start()
         self.join()
 
-    def start(self, sleep=0):
+    def start_bg(self, sleep=0):
+        _bg = self.background
+        self.background = True
+        try:
+            self.start(sleep, True)
+        finally:
+            self.background = _bg
+
+    def start(self, sleep=0, background=False):
         """Run through host is the pool aysnchronously.  If sleep is > 0, start
         will wait for specified noumber of seconds before returning."""
         try:
@@ -77,7 +94,8 @@ class Pool(object):
                 args = [host, self._creds, self._commands, self.results]
                 self._async_result = self._pool.apply_async(_worker, args,
                                                             self._worker_kwargs)
-                self._async_result.get(2**32)
+                if not self._background and not background:
+                    self._async_result.get(2**32)
             self._pool.close()
         except KeyboardInterrupt:
             self.kill()
