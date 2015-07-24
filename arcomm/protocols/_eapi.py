@@ -100,7 +100,7 @@ class _Eapi(object):
         """execute a series of commands on a remote host. removes the output
         item for the 'enable' command if `self.enabled` is True"""
         if self.enabled:
-            commands = self._enable() + commands
+            commands = [self._enable()] + commands
 
         request = self._request(commands, **kwargs)
         response = self._send(request)
