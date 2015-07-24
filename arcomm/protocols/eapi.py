@@ -2,7 +2,7 @@
 """Eapi adpter"""
 from ._eapi import _Eapi, _EapiException
 from ..protocol import Protocol
-from ..exceptions import ExecuteFailed
+from ..exceptions import ExecuteFailed, AuthorizationFailed
 
 def _format_commands(commands):
     """converts commands to Eapi formatted dicts"""
@@ -24,7 +24,10 @@ class Eapi(Protocol):
 
     def _authorize(self, secret):
         """Authorize the 'session'"""
-        self.connection.enable()
+        try:
+            self.connection.enable()
+        except _EapiException as exc:
+            raise AuthorizationFailed(exc.message)
         self._marker = "#"
 
     def _connect(self, host, creds):

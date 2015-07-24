@@ -240,7 +240,7 @@ class Protocol(object):
             self._authorize(secret)
         except ProtocolException as exc:
             _message = "Authorization failed with error: {}".format(exc.message)
-            raise AuthorizationFailed(_message)
+            raise AuthorizationFailed(exc.message)
 
         self._authorized = True
 

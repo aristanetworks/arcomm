@@ -19,7 +19,17 @@ def test_pool_with(creds, hosts, protocol, encoding):
     with arcomm.async.Pool(hosts, creds=creds, commands=commands,
                            protocol=protocol, encoding=encoding) as pool:
         time.sleep(1)
-    
+
     for result in pool.results:
         #print result.get("response"), result.get("error")
+        assert "response" in result, "No response in result"
+
+def test_pool_slow_command(host, creds, exec_commands):
+
+    pool = arcomm.async.Pool([host] * 4, creds=creds, commands=["bash sleep 30"],
+                             protocol="ssh", timeout=60)
+    pool.start()
+    pool.join()
+
+    for result in pool.results:
         assert "response" in result, "No response in result"

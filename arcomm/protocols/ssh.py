@@ -6,7 +6,7 @@ import socket
 from StringIO import StringIO
 from ..protocol import Protocol
 from ..exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
-                         ProtocolException
+                         AuthorizationFailed, ProtocolException
 from ..command import Command
 from ..util import to_list
 import json
@@ -62,7 +62,9 @@ class Ssh(Protocol):
     def _authorize(self, secret):
         """Authorize the connection"""
         command = Command("enable", prompt=self._password_re, answer=secret)
-        self.execute([command])
+        response = self.execute([command])
+        if response[0].errors:
+            raise AuthorizationFailed(response[0].errors.pop())
 
     def _connect(self, host, creds):
         """Connect to a remote host"""
@@ -92,7 +94,7 @@ class Ssh(Protocol):
 
         buff = StringIO()
         errored_response = ""
-        
+
         send = str(command)
         if encoding == "json":
             send = send + " | json"
@@ -117,11 +119,11 @@ class Ssh(Protocol):
                     raise ExecuteFailed(errored_response)
                 else:
                     response = buff.getvalue()
-                    
+
                     response = self._clean_response(command, response)
-                    
+
                     return json.loads(response) if encoding == "json" else response
-    
+
     def _clean_response(self, command, response):
         cleaned = []
         for line in response.splitlines():
@@ -132,8 +134,8 @@ class Ssh(Protocol):
 
             cleaned.append(line)
         return "\n".join(cleaned)
-        
-    
+
+
     def _handle_errors(self, response):
         """look for errors"""
 

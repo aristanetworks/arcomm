@@ -84,14 +84,23 @@ class _Eapi(object):
     def enable(self):
         """set the session as 'enabled' and prepend the 'enable' command to all
         subsequent calls to `execute`"""
+
+        # test enable...
+        response = self.execute([self._enable()])
+
+        if "error" in response:
+            raise _EapiException(response["error"]["message"])
+
         self.enabled = True
+
+    def _enable(self):
+        return {"cmd": "enable", "input": self.enable_pass}
 
     def execute(self, commands, **kwargs):
         """execute a series of commands on a remote host. removes the output
         item for the 'enable' command if `self.enabled` is True"""
         if self.enabled:
-            _enable = [{"cmd": "enable", "input": self.enable_pass}]
-            commands = _enable + commands
+            commands = self._enable() + commands
 
         request = self._request(commands, **kwargs)
         response = self._send(request)

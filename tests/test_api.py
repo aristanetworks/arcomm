@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 import arcomm
+from arcomm.exceptions import AuthorizationFailed
 import pytest
 
 def test_authorize(connection, authorize_password):
     arcomm.authorize(connection, secret=authorize_password)
     assert arcomm.authorized(connection)
+
+@pytest.mark.parametrize("protocol,timeout", [("ssh", 30), ("eapi", 30)])
+def test_bad_authorize(host, readonly_creds, protocol, timeout):
+    conn = arcomm.connect(host, readonly_creds, protocol=protocol, timeout=timeout)
+
+    with pytest.raises(AuthorizationFailed) as excinfo:
+         arcomm.authorize(conn)
+    print excinfo
 
 @pytest.mark.parametrize("protocol,timeout", [("ssh", 30), ("eapi", 30)])
 def test_clone(connection, host, creds, protocol, timeout):
@@ -39,8 +48,9 @@ def test_create_pool(hosts, creds, exec_commands):
 def test_execute(connection, exec_commands):
     arcomm.execute(connection, exec_commands)
 
-def test_execute_bg(connection, exec_commands):
-    arcomm.execute_bg(connection, exec_commands)
+@pytest.mark.parametrize("protocol,timeout", [("ssh", 30), ("eapi", 30)])
+def test_execute_bg(connection, exec_commands, protocol, timeout):
+    arcomm.execute_bg(connection, exec_commands, protocol, timeout)
 
 def test_execute_once(host, creds, exec_commands):
     arcomm.execute_once(host, creds, exec_commands)

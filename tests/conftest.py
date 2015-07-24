@@ -3,6 +3,9 @@ import pytest
 import arcomm
 
 PROTOCOLS = ["ssh", "eapi"]
+READONLY_CREDS = ("nocuser", "nocuser")
+CREDS = ("admin", "")
+ENABLE_SECRECT = ("s3cr3t")
 
 def pytest_addoption(parser):
     group = parser.getgroup("arcomm", "Arcomm testing options")
@@ -49,6 +52,11 @@ def creds(request):
     authorize_password = request.config.getoption("--authorize-password")
     return arcomm.get_credentials(username=username, password=password,
                  authorize_password=authorize_password)
+
+@pytest.fixture(scope="session")
+def readonly_creds():
+    username, password = READONLY_CREDS
+    return arcomm.get_credentials(username=username, password=password)
 
 @pytest.fixture(scope="module", params=PROTOCOLS)
 def connection(host, creds, request):
