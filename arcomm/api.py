@@ -107,6 +107,7 @@ def execute_bg(connection, commands, **kwargs):
     """
     pool = create_pool([connection.host], creds=connection.creds,
                        commands=commands, **kwargs)
+    # tell the pool opject to run tasks non-blocking
     pool.background = True
     return pool
 
