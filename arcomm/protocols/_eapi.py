@@ -105,6 +105,6 @@ class _Eapi(object):
         request = self._request(commands, **kwargs)
         response = self._send(request)
 
-        if self.enabled:
+        if "result" in response and self.enabled:
             response["result"].pop(0)
         return response
