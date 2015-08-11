@@ -69,6 +69,7 @@ def main():
         help=("Use if a password is needed for elevated prvilges"))
     arg("-t", "--timeout", type=int, default=300,
         help=("Change the timeout from the default of 300 seconds"))
+    arg("--hosts-file", help="Path to file containing list of hosts")
     arg("--script", help=("Path to a script file containing commands to "
                           "execute. template variables will be processed if "
                           "Jinja2 is installed and `--variables` is also "
@@ -79,6 +80,21 @@ def main():
 
     if args.version:
         parser.exit(0, __version__)
+
+    if args.hosts_file:
+        import re
+        with open(args.hosts_file) as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                if re.search(r"^\s*(#|!)", line):
+                    continue
+                match = re.search(r"(?:[a-f0-9:.]+\s+)?([a-z0-9\-]+)", line,
+                                  re.IGNORECASE)
+                if match:
+                    line = match.group(1)
+                args.hosts.append(line)
 
     if not args.hosts:
         parser.error("At least one host must be specified")
