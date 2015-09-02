@@ -79,7 +79,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        parser.exit(0, __version__)
+        parser.exit(0, __version__ + "\n")
 
     if args.hosts_file:
         import re
