@@ -4,5 +4,4 @@
 # pylint: disable=wildcard-import
 from .api import *
 
-__version__ = '1.0.1-beta3'
-
+__version__ = '1.0.2'
