@@ -54,7 +54,7 @@ def main():
     parser = ArgumentParser(prog="arcomm")
     arg = parser.add_argument
     arg("hosts", nargs="*")
-    arg("-v", "--version", help="Display version info")
+    arg("-v", "--version", action="store_true", help="Display version info")
     arg("--authorize", action="store_true")
     arg("--protocol", default=["eapi", "ssh"],
         help=("Set the default protocol or protocols. If more than one is "
