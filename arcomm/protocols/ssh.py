@@ -154,11 +154,12 @@ class Ssh(Protocol):
             return
 
         prompt = to_list(prompt)
-
-        for regex in prompt:
-            match = regex.search(response)
+        answer = to_list(answer)
+        for _pr, _ans in zip(prompt, answer:
+            print "PROMPT", _pr, _ans
+            match = _pr.search(response)
             if match:
-                self._channel.send("{}\n".format(answer))
+                self._channel.send("{}\n".format(_ans))
 
     def _handle_prompt(self, response):
         """look for cli prompt"""
