@@ -155,7 +155,7 @@ class Ssh(Protocol):
 
         prompt = to_list(prompt)
         answer = to_list(answer)
-        for _pr, _ans in zip(prompt, answer:
+        for _pr, _ans in zip(prompt, answer):
             print "PROMPT", _pr, _ans
             match = _pr.search(response)
             if match:
