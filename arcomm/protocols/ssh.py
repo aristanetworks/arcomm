@@ -89,7 +89,7 @@ class Ssh(Protocol):
         self._banner = self._send(Command("\n"))
         return _ssh
 
-    def _send(self, command, encoding="text"):
+    def _send(self, command, encoding="text", nowait=False):
         """Sends a command to the remote device and returns the response"""
 
         buff = StringIO()
@@ -99,6 +99,9 @@ class Ssh(Protocol):
         if encoding == "json":
             send = send + " | json"
         self._channel.sendall(send + '\r')
+
+        if nowait:
+            return {} if encoding == "json" else ""
 
         while True:
             response = self._channel.recv(200)
