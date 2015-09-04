@@ -61,8 +61,9 @@ def main():
               "supplied, they will be tried in order"))
     arg("--encoding", default="text", choices=["json", "text"],
         help="Control output formatting")
-    arg("-u", "--username", help="Specifies the username on the switch")
-    arg("-p", "--password",
+    arg("-u", "--username", default="admin",
+        help="Specifies the username on the switch")
+    arg("-p", "--password", default="",
         help=("Specifies users password.  If not supplied, the user will be "
               "prompted"))
     arg("-a", "--authorize-password", default=None,

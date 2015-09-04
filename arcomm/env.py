@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+
+ARCOMM_DEFAULT_PROTOCOL = ["eapi", "ssh"]
+ARCOMM_DEFAULT_TIMEOUT = 30
+ARCOMM_DEFAULT_USERNAME = "admin"
+ARCOMM_DEFAULT_PASSWORD = ""
