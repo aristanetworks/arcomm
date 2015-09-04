@@ -2,7 +2,7 @@
 """Eapi adpter"""
 from ._eapi import _Eapi, _EapiException
 from ..protocol import Protocol
-from ..exceptions import ExecuteFailed, AuthorizationFailed
+from ..exceptions import ConnectFailed, ExecuteFailed, AuthorizationFailed
 
 def _format_commands(commands):
     """converts commands to Eapi formatted dicts"""
@@ -32,9 +32,15 @@ class Eapi(Protocol):
 
     def _connect(self, host, creds):
         """returns a _Eapi object, no connection is made at this time"""
-        return _Eapi(host, username=creds.username, password=creds.password,
+        conn = _Eapi(host, username=creds.username, password=creds.password,
                      enable=creds.authorize_password, use_ssl=self._use_ssl,
                      port=self._port)
+
+        # test the connection
+        try:
+            conn.execute("show clock")
+        except _EapiException as exc:
+            raise ConnectFailed(str(exc))
 
     def _sendall(self, commands, encoding="text", timestamps=False):
         """Send all commands in one request. Eapi track conext (enabled? or
@@ -113,6 +119,7 @@ class Eapi(Protocol):
         responses = []
         errmsg = None
         commands = _format_commands(commands)
+
         try:
             response = self.connection.execute(commands, encoding=encoding, timestamps=timestamps)
         except _EapiException as exc:
