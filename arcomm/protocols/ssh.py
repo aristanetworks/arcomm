@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """SSH adapter module"""
 
+import json
 import re
 import socket
 from StringIO import StringIO
-from ..protocol import Protocol
-from ..exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
+from arcomm.protocol import Protocol
+from arcomm.exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
                          AuthorizationFailed, ProtocolException
-from ..command import Command
-from ..util import to_list
-import json
+from arcomm.command import Command
+from arcomm.util import to_list
 
 try:
     import paramiko
@@ -53,7 +53,7 @@ class Ssh(Protocol):
         re.compile(r"connection timed out", re.I),
         re.compile(r"[^\r\n]+ not found", re.I),
         re.compile(r"'[^']' +returned error code: ?\d+"),
-        re.compile(r"[^\r\n]\/bin\/(?:ba)?sh", )
+        re.compile(r"[^\r\n]\/bin\/(?:ba)?sh")
     ]
 
     def _on_initialize(self, **kwargs):
