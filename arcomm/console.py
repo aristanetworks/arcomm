@@ -91,7 +91,7 @@ def main():
                     continue
                 if re.search(r"^\s*(#|!)", line):
                     continue
-                match = re.search(r"(?:[a-f0-9:.]+\s+)?([a-z0-9\-]+)", line,
+                match = re.search(r"(?:[a-f0-9:.]+\s+)?([a-z0-9\-\.]+)", line,
                                   re.IGNORECASE)
                 if match:
                     line = match.group(1)
