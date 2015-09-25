@@ -42,6 +42,8 @@ class Eapi(Protocol):
         except _EapiException as exc:
             raise ConnectFailed(str(exc))
 
+        return conn
+
     def _sendall(self, commands, encoding="text", timestamps=False):
         """Send all commands in one request. Eapi track conext (enabled? or
         configured?, etc...)
