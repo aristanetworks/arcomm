@@ -86,7 +86,7 @@ def execute(connection, commands, **kwargs):
     """Execute a command or series of commands and return the results"""
     return connection.execute(commands, **kwargs)
 
-def execute_bg(connection, commands, **kwargs):
+def execute_bg(host, creds, commands, **kwargs):
     """Returns a command ready to be run in the background
     example:
 
@@ -105,9 +105,9 @@ def execute_bg(connection, commands, **kwargs):
     for result in proc.results:
         print result
     """
-    pool = create_pool([connection.host], creds=connection.creds,
+    pool = create_pool([host], creds=creds,
                        commands=commands, **kwargs)
-    # tell the pool opject to run tasks non-blocking
+    # tell the pool to run tasks non-blocking
     pool.background = True
     return pool
 
