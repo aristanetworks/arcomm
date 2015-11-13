@@ -35,7 +35,7 @@ class Ssh(Protocol):
         # cs-spine-2a(s1)(config)#
         # cs-spine-2b(vrf:management)(config)#
         # cs-spine-2b(s1)(vrf:management)(config)#
-        re.compile(r"[\r\n]?[\w+\-\.:\/]+(?:\([^\)]+\)){,3}(?:>|#) ?$"),
+        re.compile(r"[\r\n]?[\w+\-\.:\/\[\]]+(?:\([^\)]+\)){,3}(?:>|#) ?$"),
         # Match on:
         # [admin@cs-spine-2a /]$
         # [admin@cs-spine-2a local]$
