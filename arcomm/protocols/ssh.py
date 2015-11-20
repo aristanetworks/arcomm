@@ -5,9 +5,10 @@ import json
 import re
 import socket
 from StringIO import StringIO
-from arcomm.protocol import Protocol
-from arcomm.exceptions import ConnectFailed, ExecuteFailed, AuthenticationFailed, \
-                         AuthorizationFailed, ProtocolException
+from arcomm.protocols.protocol import BaseProtocol
+from arcomm.exceptions import ConnectFailed, ExecuteFailed, \
+                              AuthenticationFailed,  AuthorizationFailed, \
+                              ProtocolException
 from arcomm.command import Command
 from arcomm.util import to_list
 
@@ -16,116 +17,56 @@ try:
 except ImportError:
     ProtocolException("paramiko is required for SSH connections")
 
-class Ssh(Protocol):
-    """SSH protocol adapter"""
+class Ssh(BaseProtocol):
+    """Specialize SSH class for interacting with Arista switches"""
 
-    _port = 22
-    _channel = None
-    _banner = ""
-    _password_re = [
-        re.compile(r"[\r\n]?password: ?$", re.I)
-    ]
+    def __init__(self):
 
-    _prompt_re = [
-        # Match on:
-        # cs-spine-2a......14:08:54#
-        # cs-spine-2a>
-        # cs-spine-2a#
-        # cs-spine-2a(s1)#
-        # cs-spine-2a(s1)(config)#
-        # cs-spine-2b(vrf:management)(config)#
-        # cs-spine-2b(s1)(vrf:management)(config)#
-        re.compile(r"[\r\n]?[\w+\-\.:\/\[\]]+(?:\([^\)]+\)){,3}(?:>|#) ?$"),
-        # Match on:
-        # [admin@cs-spine-2a /]$
-        # [admin@cs-spine-2a local]$
-        # [admin@cs-spine-2a ~]$
-        # -bash-4.1#
-        re.compile(r"\[\w+\@[\w\-\.]+(?: [^\]])\] ?[>#\$] ?$")
-    ]
+        # default port for ssh connections
+        self._port = 22
 
-    _error_re = [
-        re.compile(r"% ?Error"),
-        re.compile(r"^% \w+", re.M),
-        re.compile(r"% ?Bad secret"),
-        re.compile(r"invalid input", re.I),
-        re.compile(r"(?:incomplete|ambiguous) command", re.I),
-        re.compile(r"connection timed out", re.I),
-        re.compile(r"[^\r\n]+ not found", re.I),
-        re.compile(r"'[^']' +returned error code: ?\d+"),
-        re.compile(r"[^\r\n]\/bin\/(?:ba)?sh")
-    ]
+        # default timeout
+        self._timeout = 30
 
-    def _on_initialize(self, **kwargs):
-        self._port = kwargs.get("port") or self._port
+        # password prompt expected when authorizing
+        self._password_re = [
+            re.compile(r"[\r\n]?password: ?$", re.I)
+        ]
 
-    def _authorize(self, secret):
-        """Authorize the connection"""
-        command = Command("enable", prompt=self._password_re, answer=secret)
-        response = self.execute([command])
-        if response[0].errors:
-            raise AuthorizationFailed(response[0].errors.pop())
+        # possible command prompts
+        self._prompt_re = [
+            # Match on:
+            # cs-spine-2a......14:08:54#
+            # cs-spine-2a>
+            # cs-spine-2a#
+            # cs-spine-2a(s1)#
+            # cs-spine-2a(s1)(config)#
+            # cs-spine-2b(vrf:management)(config)#
+            # cs-spine-2b(s1)(vrf:management)(config)#
+            re.compile(r"[\r\n]?[\w+\-\.:\/\[\]]+(?:\([^\)]+\)){,3}(?:>|#) ?$"),
+            # Match on:
+            # [admin@cs-spine-2a /]$
+            # [admin@cs-spine-2a local]$
+            # [admin@cs-spine-2a ~]$
+            # -bash-4.1#
+            re.compile(r"\[\w+\@[\w\-\.]+(?: [^\]])\] ?[>#\$] ?$")
+        ]
 
-    def _connect(self, host, creds):
-        """Connect to a remote host"""
-        _ssh = paramiko.SSHClient()
-        _ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # possible error message patterns
+        self._error_re = [
+            re.compile(r"% ?Error"),
+            re.compile(r"^% \w+", re.M),
+            re.compile(r"% ?Bad secret"),
+            re.compile(r"invalid input", re.I),
+            re.compile(r"(?:incomplete|ambiguous) command", re.I),
+            re.compile(r"connection timed out", re.I),
+            re.compile(r"[^\r\n]+ not found", re.I),
+            re.compile(r"'[^']' +returned error code: ?\d+"),
+            re.compile(r"[^\r\n]\/bin\/(?:ba)?sh")
+        ]
 
-        try:
-            _ssh.connect(host, self._port, username=creds.username,
-                         password=creds.password, timeout=self.timeout)
-        except paramiko.AuthenticationException as exc:
-            raise AuthenticationFailed(exc.message)
-        except socket.timeout as exc:
-            raise ConnectFailed(str(exc))
-        except IOError as exc:
-            raise ConnectFailed("{}: {}".format(exc[0], exc[1]))
-
-        _channel = _ssh.invoke_shell()
-        _channel.settimeout(self.timeout)
-
-        self._channel = _channel
-        # might need to read this later?
-        self._banner = self._send(Command("\n"))
-        return _ssh
-
-    def _send(self, command, encoding="text", nowait=False):
-        """Sends a command to the remote device and returns the response"""
-
-        buff = StringIO()
-        errored_response = ""
-
-        send = str(command)
-        if encoding == "json":
-            send = send + " | json"
-        self._channel.sendall(send + '\r')
-
-        if nowait:
-            return {} if encoding == "json" else ""
-
-        while True:
-            response = self._channel.recv(200)
-
-            buff.write(response)
-
-            buff.seek(buff.tell() - 150)
-            window = buff.read()
-
-            if self._handle_errors(window):
-                errored_response = buff.getvalue()
-
-            # deal with interactive input
-            self._handle_input(window, command.prompt, command.answer)
-
-            if self._handle_prompt(window):
-                if errored_response:
-                    raise ExecuteFailed(errored_response)
-                else:
-                    response = buff.getvalue()
-
-                    response = self._clean_response(command, response)
-
-                    return json.loads(response) if encoding == "json" else response
+        self._ssh = None
+        self._channel = None
 
     def _clean_response(self, command, response):
         cleaned = []
@@ -135,9 +76,11 @@ class Ssh(Protocol):
             if self._handle_prompt(line):
                 continue
 
-            cleaned.append(line)
-        return "\n".join(cleaned)
+            if re.match(r'\x1b[^=]*=', line):
+                continue
+            cleaned.append(unicode(line))
 
+        return '\n'.join(cleaned)
 
     def _handle_errors(self, response):
         """look for errors"""
@@ -156,12 +99,20 @@ class Ssh(Protocol):
         if prompt is None or answer is None:
             return
 
-        prompt = to_list(prompt)
-        answer = to_list(answer)
-        for _pr, _ans in zip(prompt, answer):
-            match = _pr.search(response)
+        if not hasattr(prompt, "__iter__"):
+            prompt = [prompt]
+
+        if not hasattr(answer, "__iter__"):
+            answer = [answer]
+
+        if len(prompt) != len(answer):
+            raise ValueError(("Lists of prompts and answers have different"
+                              "lengths"))
+
+        for _prompt, _answer in zip(prompt, answer):
+            match = _prompt.search(response)
             if match:
-                self._channel.send("{}\n".format(_ans))
+                self._channel.send(_answer + '\r')
 
     def _handle_prompt(self, response):
         """look for cli prompt"""
@@ -170,9 +121,95 @@ class Ssh(Protocol):
             if match:
                 return True
 
-    def _on_connect(self):
-        self.execute("terminal length 0")
+    def authorize(self, password, username):
+        """Authorize the session"""
+        command = Command('enable', prompt=self._password_re, answer=password)
 
-    def _close(self):
-        if hasattr(self.connection, "close"):
-            self.connection.close()
+        try:
+            response = self._send(command)
+        except ExecuteFailed as exc:
+            raise AuthorizationFailed(exc.message)
+
+    def close(self):
+        """close the session"""
+        self._ssh.close()
+
+    def connect(self, host, creds, options):
+        """Connect to a host and invoke the shell.  Returns nothing """
+
+        timeout = options.get('timeout', self._timeout)
+        port = options.get('port', self._port)
+
+        self._ssh = paramiko.SSHClient()
+        self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        try:
+            self._ssh.connect(host, port, username=creds.username,
+                         password=creds.password, timeout=timeout)
+
+        except paramiko.AuthenticationException as exc:
+            raise AuthenticationFailed(exc.message)
+        except socket.timeout as exc:
+            raise ConnectFailed(str(exc))
+        except IOError as exc:
+            raise ConnectFailed("{}: {}".format(exc[0], exc[1]))
+
+        # we must invoke a shell, otherwise session commands like 'enable',
+        # 'terminal width', etc. won't stick
+        channel = self._ssh.invoke_shell()
+        channel.settimeout(timeout)
+        self._channel = channel
+
+        # capture login banner and clear any login messages
+        self._banner = self._send(Command(''))
+        self.send([Command('terminal length 0'), Command('terminal dont-ask')])
+
+    def send(self, commands, options={}):
+        """Send a series of commands to the device"""
+        responses = []
+
+        for command in commands:
+            response = None
+            error = None
+            try:
+                response = self._send(command)
+            except ExecuteFailed as exc:
+                error = response = exc.message
+                responses.append((None, error))
+                return responses
+            responses.append((response, error))
+        return responses
+
+    def _send(self, command):
+        """Sends a command to the remote device and returns the response"""
+
+        buff = StringIO()
+
+        errored = False # _response = ''
+
+        self._channel.sendall(str(command) + '\r')
+
+        while True:
+            # try:
+            response = self._channel.recv(1024)
+            # except socket.timeout:
+            #     raise Timeout("% Timeout while running: {}".format(command))
+
+            buff.write(response)
+
+            buff.seek(buff.tell() - 150)
+            window = buff.read()
+
+            if self._handle_errors(window):
+                errored = True # _response = buff.getvalue()
+
+            # deal with interactive input
+            self._handle_input(window, command.prompt, command.answer)
+
+            if self._handle_prompt(window):
+                data = buff.getvalue()
+                data = self._clean_response(command, data)
+                if errored:
+                    raise ExecuteFailed(data)
+                else:
+                    return (data)

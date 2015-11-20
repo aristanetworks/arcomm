@@ -37,8 +37,8 @@ class Response(object):
         """return the data from the response as a string"""
         return self._output
 
-    def to_dict(self):
-        return {"command": str(self.command), "output": self.output, "errors": self.errors}
+    # def to_dict(self):
+    #     return {"command": str(self.command), "output": self.output, "errors": self.errors}
 
 class ResponseStore(object):
     """List-like object for storing responses"""
@@ -97,27 +97,7 @@ class ResponseStore(object):
         """emptys the responses"""
         self._store = list()
 
-    def splitlines(self):
-        """returns responses as a list"""
-        return self.responses
-
-    def to_dict(self):
-        data = []
-        for response in self._store:
-            data.append(response.to_dict())
-        return data
-
-    def to_json(self, *args, **kwargs):
-        return json.dumps(self.to_dict(), *args, **kwargs)
-
-    def to_yaml(self, *args, **kwargs):
-        yml = "---\ncommands:\n"
-        for response in self._store:
-            yml += "  -\n"
-            yml += "    command: {}\n".format(response.command)
-            yml += "    output: |\n"
-            yml += indentblock(response.output, spaces=8)
-            if response.error:
-                yml += "    errors: |\n"
-                yml += indentblock(response.error, spaces=8)
-        return yml
+    #def splitlines(self):
+    # def to_list(self):
+    #     """returns responses as a list"""
+    #     return self.responses

@@ -1,148 +1,175 @@
 # -*- coding: utf-8 -*-
-"""Eapi adpter"""
-from ._eapi import _Eapi, _EapiException
-from ..protocol import Protocol
-from ..exceptions import ConnectFailed, ExecuteFailed, AuthorizationFailed
+try:
+    import requests_unixsocket
+    requests_unixsocket.monkeypatch()
+except ImportError:
+    pass
+
+import json
+import requests
+import warnings
+
+# try:
+#     import paramiko
+# except ImportError:
+#     pass
+
+from arcomm.protocols.protocol import BaseProtocol
+#from arcomm.protocols._ssh_forward import
+from arcomm.command import Command
+
+class BaseTransport(object):
+
+    def payload(self, commands, encoding, timestamps=False):
+        """generate the request data"""
+        id =  'arcomm-' + self.__class__.__name__
+        params = {
+            'version': 1,
+            'cmds': commands,
+            'format': encoding
+        }
+        # timestamps is a newer param, only include it if requested
+        if timestamps:
+            params['timestamps'] = timestamps
+
+        return {
+            'jsonrpc': '2.0',
+            'method': 'runCmds',
+            'params': params,
+            'id': id
+        }
+
+    def connect(self, host, creds, port):
+        raise NotImplementedError
+
+    def send(self, commands):
+        raise NotImplementedError
+
+class HttpTransport(BaseTransport):
+
+    def __init__(self):
+        self.scheme = 'http'
+        self.endpoint = None
+        self.creds = None
+        self.headers = {'Content-Type': 'application/json'}
+
+    def get_endpoint(self, host, port=None):
+        endpoint = '{}://{}'.format(self.scheme, host)
+
+        if port:
+            endpoint += ':{}'.format(port)
+
+        endpoint += '/command-api'
+
+        return endpoint
+
+    def connect(self, host, creds=None, port=None):
+        self.endpoint = self.get_endpoint(host, port)
+        self.creds = creds
+
+    def send(self, commands, encoding='text', timestamps=False):
+
+        creds = self.creds.auth if hasattr(self.creds, 'auth') else None
+
+        payload = self.payload(commands, encoding, timestamps)
+        response = requests.post(self.endpoint, auth=creds,
+                                 headers=self.headers, data=json.dumps(payload))
+        return response
+
+class HttpsTransport(HttpTransport):
+
+    def __init__(self):
+        super(HttpsTransport, self).__init__()
+        self.scheme = 'https'
+
+class UnixTransport(BaseTransport):
+
+    def __init__(self):
+        super(UnixTransport, self).__init__()
+        self.scheme = 'http+unix'
+
+# class SshTransport(HttpTransport):
+#     pass
 
 def _format_commands(commands):
     """converts commands to Eapi formatted dicts"""
+
     formatted = []
     for command in commands:
-        _cmd = str(command).strip()
-        _answer = command.answer or ""
-        formatted.append(dict(cmd=_cmd, input=_answer))
+        answer = command.answer or ''
+        command = command.cmd.strip()
+        formatted.append({'cmd': command, 'input': answer})
+
     return formatted
 
-class Eapi(Protocol):
-    """Wrapper class for JSON-RPC API"""
-    _marker = ">"
-    _use_ssl = False
-    _port = 80
-    def _on_initialize(self, **kwargs):
-        """Setup protocol specific attributes"""
-        pass
+class Eapi(BaseProtocol):
 
-    def _authorize(self, secret):
-        """Authorize the 'session'"""
-        try:
-            self.connection.enable()
-        except _EapiException as exc:
-            raise AuthorizationFailed(exc.message)
-        self._marker = "#"
+    def __init__(self):
+        self._authorize = None
+        self._conn = None
 
-    def _connect(self, host, creds):
-        """returns a _Eapi object, no connection is made at this time"""
-        conn = _Eapi(host, username=creds.username, password=creds.password,
-                     enable=creds.authorize_password, use_ssl=self._use_ssl,
-                     port=self._port)
+        self._transports = {
+            'http': HttpTransport,
+            'https': HttpsTransport,
+            'unix': UnixTransport,
+            #'ssh': SshTransport
+        }
+
+    def close(self):
+        self._conn = None
+
+    def connect(self, host, creds, options):
+
+        transport = options.get('transport', 'http')
+
+        self._conn = self._transports[transport]()
+        self._conn.connect(host, creds, options.get('port'))
 
         # test the connection
-        try:
-            conn.execute("show clock")
-        except _EapiException as exc:
-            raise ConnectFailed(str(exc))
+        self.send([Command('show clock')])
 
-        return conn
+    def send(self, commands, options={}): #encoding='text', timestamps=False):
+        #print "ENCODING:", encoding
+        results = []
 
-    def _sendall(self, commands, encoding="text", timestamps=False):
-        """Send all commands in one request. Eapi track conext (enabled? or
-        configured?, etc...)
+        encoding = options.get('encoding', 'text')
+        timestamps = options.get('timestamps', False)
 
-        JSON OK:
+        if self._authorize:
+            commands = [self._authorize] + commands
 
-        {u'id': u'arcomm.protocols._Eapi',
-         u'jsonrpc': u'2.0',
-         u'result': [{u'architecture': u'i386',
-                      u'bootupTimestamp': 1432852261.69,
-                      u'hardwareRevision': u'',
-                      u'internalBuildId': u'1d97861d-09c7-4fc3-b38d-a98c99b77ae9',
-                      u'internalVersion': u'4.15.0F-2387143.4150F',
-                      u'memFree': 118540,
-                      u'memTotal': 2027964,
-                      u'modelName': u'vEOS',
-                      u'serialNumber': u'',
-                      u'systemMacAddress': u'00:0c:29:44:28:8b',
-                      u'version': u'4.15.0F'}]}
+        response = self._conn.send(_format_commands(commands),
+                                   encoding=encoding, timestamps=timestamps)
 
-        TEXT OK:
+        response.raise_for_status()
+            #raise ValueError('...')
 
-        {u'id': u'arcomm.protocols._Eapi',
-         u'jsonrpc': u'2.0',
-         u'result': [{u'output': u'Arista vEOS\nHardware version:    \nSerial number:       \nSystem MAC address:  000c.2944.288b\n\nSoftware image version: 4.15.0F\nArchitecture:           i386\nInternal build version: 4.15.0F-2387143.4150F\nInternal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9\n\nUptime:                 15 hours and 11 minutes\nTotal memory:           2027964 kB\nFree memory:            118656 kB\n\n'}]}
+        data = response.json()
 
-        JSON ERROR:
-
-        {u'error': {u'code': 1002,
-                    u'data': [{u'architecture': u'i386',
-                               u'bootupTimestamp': 1432852261.69,
-                               u'hardwareRevision': u'',
-                               u'internalBuildId': u'1d97861d-09c7-4fc3-b38d-a98c99b77ae9',
-                               u'internalVersion': u'4.15.0F-2387143.4150F',
-                               u'memFree': 118724,
-                               u'memTotal': 2027964,
-                               u'modelName': u'vEOS',
-                               u'serialNumber': u'',
-                               u'systemMacAddress': u'00:0c:29:44:28:8b',
-                               u'version': u'4.15.0F'},
-                              {u'errors': [u"Invalid input (at token 1: 'bogus')"]}],
-                    u'message': u"CLI command 2 of 2 'show bogus command' failed: invalid command"},
-         u'id': u'arcomm.protocols._Eapi',
-         u'jsonrpc': u'2.0'}
-
-
-        TEXT ERROR:
-
-        {u'error': {u'code': 1002,
-                    u'data': [{u'output': u'Arista vEOS\nHardware version:    \nSerial number:       \nSystem MAC address:  000c.2944.288b\n\nSoftware image version: 4.15.0F\nArchitecture:           i386\nInternal build version: 4.15.0F-2387143.4150F\nInternal build ID:      1d97861d-09c7-4fc3-b38d-a98c99b77ae9\n\nUptime:                 15 hours and 10 minutes\nTotal memory:           2027964 kB\nFree memory:            118492 kB\n\n'},
-                              {u'errors': [u"Invalid input (at token 1: 'bogus')"],
-                               u'output': u"% Invalid input (at token 1: 'bogus')\n"}],
-                    u'message': u"CLI command 2 of 2 'show bogus command' failed: invalid command"},
-         u'id': u'arcomm.protocols._Eapi',
-         u'jsonrpc': u'2.0'}
-
-
-        SHOULD RETURN
-
-        [({u'architecture': u'i386',
-           u'bootupTimestamp': 1432852261.68,
-           u'hardwareRevision': u'',
-           u'internalBuildId': u'1d97861d-09c7-4fc3-b38d-a98c99b77ae9',
-           u'internalVersion': u'4.15.0F-2387143.4150F',
-           u'memFree': 78680,
-           u'memTotal': 2027964,
-           u'modelName': u'vEOS',
-           u'serialNumber': u'',
-           u'systemMacAddress': u'00:0c:29:44:28:8b',
-           u'version': u'4.15.0F'},
-          None),
-         (None, '% Invalid input')]
-
-        """
-        responses = []
-        errmsg = None
-        commands = _format_commands(commands)
-
-        try:
-            response = self.connection.execute(commands, encoding=encoding, timestamps=timestamps)
-        except _EapiException as exc:
-            raise ExecuteFailed("Send failed: {}".format(exc.message))
-        #from pprint import pprint as pp
-        if "error" in response:
-            data = response["error"]["data"]
-            errmsg = "[{}]: {}".format(response["error"]["code"], response["error"]["message"])
-            errored = ",".join(data.pop()["errors"])
-            data.append({"output": errored})
+        if 'error' in data:
+            err_code = data['error']['code']
+            err_msg = data['error']['message']
+            data = data['error']['data']
         else:
-            data = response["result"]
+            data = data['result']
 
         for item in data:
-            if "output" in item:
-                responses.append((item["output"], None))
+            errors = None
+            if 'errors' in item:
+                errors = '; '.join(item['errors'])
+                del(item['errors'])
+
+            if encoding == 'text':
+                output = item['output']
             else:
-                responses.append((item, None))
+                output = item
 
-        if errmsg:
-            response, _ = responses.pop()
-            responses.append((response, errmsg))
+            results.append((output, errors))
 
-        return responses
+        if len(results) > 1 and self._authorize:
+            results.pop(0)
+
+        return results
+
+    def authorize(self, password, username):
+        self._authorize = Command({'cmd': 'enable', 'input': password})
