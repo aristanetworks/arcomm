@@ -58,5 +58,5 @@ class BasicCreds(BaseCreds):
     #     return ":".join(parts)
     # uri = uripart
 
-# class Creds(BasicCreds):
-#     pass
+class Creds(BasicCreds):
+    pass
