@@ -9,6 +9,7 @@ except ImportError:
 
 import arcomm.env as env
 from arcomm.credentials import BasicCreds
+
 def to_list(data):
     """Creates a list containing the data as a single element or a new list
     from the original if it is already a list or a tuple"""
@@ -28,12 +29,12 @@ def to_multiline_string(data, end_of_line="\r\n"):
 
     return data
 
-def dictmerge(*args):
-    """Merge dictionarys"""
-    result = {}
-    for dict_ in args:
-        result = dict(list(result.items()) + list(dict_.items()))
-    return result
+def merge_dicts(*args):
+    merged = args[0]
+    for dict_ in args[1:]:
+        merged.update(dict_)
+    return merged
+dictmerge = merge_dicts
 
 def indentblock(text, spaces=0):
     text = text.splitlines() if hasattr(text, "splitlines") else []
