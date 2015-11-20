@@ -8,7 +8,7 @@ except ImportError:
 import json
 import requests
 import warnings
-
+from arcomm.exceptions import AuthenticationFailed, ExecuteFailed
 # try:
 #     import paramiko
 # except ImportError:
@@ -74,6 +74,8 @@ class HttpTransport(BaseTransport):
         payload = self.payload(commands, encoding, timestamps)
         response = requests.post(self.endpoint, auth=creds,
                                  headers=self.headers, data=json.dumps(payload))
+
+        response.raise_for_status()
         return response
 
 class HttpsTransport(HttpTransport):
@@ -118,31 +120,37 @@ class Eapi(BaseProtocol):
     def close(self):
         self._conn = None
 
-    def connect(self, host, creds, options):
+    def connect(self, host, creds, **kwargs):
 
-        transport = options.get('transport', 'http')
+        transport = kwargs.get('transport', 'http')
+        port = kwargs.get('port')
 
         self._conn = self._transports[transport]()
-        self._conn.connect(host, creds, options.get('port'))
+        self._conn.connect(host, creds, port=port)
 
-        # test the connection
-        self.send([Command('show clock')])
+        try:
+            # test the connection
+            self.send([Command('')])
+        except ExecuteFailed as exc:
+            if '401 Client Error' in exc.message:
+                raise AuthenticationFailed(exc.message)
 
-    def send(self, commands, options={}): #encoding='text', timestamps=False):
-        #print "ENCODING:", encoding
+    def send(self, commands, **kwargs):
+
         results = []
 
-        encoding = options.get('encoding', 'text')
-        timestamps = options.get('timestamps', False)
+        encoding = kwargs.get('encoding', 'text')
+        timestamps = kwargs.get('timestamps', False)
 
         if self._authorize:
             commands = [self._authorize] + commands
 
-        response = self._conn.send(_format_commands(commands),
-                                   encoding=encoding, timestamps=timestamps)
-
-        response.raise_for_status()
-            #raise ValueError('...')
+        try:
+            response = self._conn.send(_format_commands(commands),
+                                       encoding=encoding, timestamps=timestamps)
+        #     print "RESPONSE:", response
+        except requests.HTTPError as exc:
+            raise ExecuteFailed(exc.message)
 
         data = response.json()
 
@@ -150,21 +158,15 @@ class Eapi(BaseProtocol):
             err_code = data['error']['code']
             err_msg = data['error']['message']
             data = data['error']['data']
-        else:
-            data = data['result']
+            raise ExecuteFailed("[{}] {}".format(err_code, err_msg))
 
-        for item in data:
-            errors = None
-            if 'errors' in item:
-                errors = '; '.join(item['errors'])
-                del(item['errors'])
-
+        for item in data['result']:
             if encoding == 'text':
                 output = item['output']
             else:
                 output = item
 
-            results.append((output, errors))
+            results.append(output)
 
         if len(results) > 1 and self._authorize:
             results.pop(0)

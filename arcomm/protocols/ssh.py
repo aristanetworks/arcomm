@@ -134,11 +134,13 @@ class Ssh(BaseProtocol):
         """close the session"""
         self._ssh.close()
 
-    def connect(self, host, creds, options):
+    def connect(self, host, creds, **kwargs):
         """Connect to a host and invoke the shell.  Returns nothing """
 
-        timeout = options.get('timeout', self._timeout)
-        port = options.get('port', self._port)
+        options = kwargs
+
+        timeout = options.get('timeout') or self._timeout
+        port = options.get('port') or self._port
 
         self._ssh = paramiko.SSHClient()
         self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -164,20 +166,16 @@ class Ssh(BaseProtocol):
         self._banner = self._send(Command(''))
         self.send([Command('terminal length 0'), Command('terminal dont-ask')])
 
-    def send(self, commands, options={}):
+    def send(self, commands, **kwargs):
         """Send a series of commands to the device"""
+
+        options = kwargs
+
         responses = []
 
         for command in commands:
-            response = None
-            error = None
-            try:
-                response = self._send(command)
-            except ExecuteFailed as exc:
-                error = response = exc.message
-                responses.append((None, error))
-                return responses
-            responses.append((response, error))
+            response = self._send(command)
+            responses.append(response)
         return responses
 
     def _send(self, command):
@@ -185,15 +183,16 @@ class Ssh(BaseProtocol):
 
         buff = StringIO()
 
-        errored = False # _response = ''
+        errored_response = None
 
         self._channel.sendall(str(command) + '\r')
 
         while True:
-            # try:
-            response = self._channel.recv(1024)
-            # except socket.timeout:
-            #     raise Timeout("% Timeout while running: {}".format(command))
+            try:
+                response = self._channel.recv(1024)
+            except socket.timeout:
+                message = "% Timed out while running: {}".format(command)
+                raise ExecuteFailed(message)
 
             buff.write(response)
 
@@ -201,7 +200,7 @@ class Ssh(BaseProtocol):
             window = buff.read()
 
             if self._handle_errors(window):
-                errored = True # _response = buff.getvalue()
+                errored_response = buff.getvalue()
 
             # deal with interactive input
             self._handle_input(window, command.prompt, command.answer)
@@ -209,7 +208,7 @@ class Ssh(BaseProtocol):
             if self._handle_prompt(window):
                 data = buff.getvalue()
                 data = self._clean_response(command, data)
-                if errored:
-                    raise ExecuteFailed(data)
+                if errored_response:
+                    raise ExecuteFailed(errored_response)
                 else:
                     return (data)
