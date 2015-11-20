@@ -96,8 +96,3 @@ class ResponseStore(object):
     def flush(self):
         """emptys the responses"""
         self._store = list()
-
-    #def splitlines(self):
-    # def to_list(self):
-    #     """returns responses as a list"""
-    #     return self.responses
