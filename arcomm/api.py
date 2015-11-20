@@ -9,11 +9,20 @@ def connect(uri, **kwargs):
     sess = Session()
     return sess.connect(uri, **kwargs)
 
-def execute(uri, commands, options):
-    with Session() as sess:
-        sess.connect(uri, options)
+def configure(uri, commands,  **kwargs):
 
-        authorize = options.get('authorize')
+    commands = to_list(commands)
+    commands.insert(0, "configure")
+    commands.append("end")
+
+    execute(uri, commands,  **kwargs)
+
+def execute(uri, commands, **kwargs):
+
+    with Session() as sess:
+        sess.connect(uri,  **kwargs)
+
+        authorize = kwargs.get('authorize')
         if authorize:
             if hasattr(authorize, '__iter__'):
                 username, password = authorize[0], authorize[1]
@@ -21,14 +30,4 @@ def execute(uri, commands, options):
                 username, password = ('', authorize)
             sess.authorize(password, username)
 
-        return sess.send(commands, options)
-
-send = execute
-
-def configure(uri, commands, options):
-
-    commands = to_list(commands)
-    commands.insert(0, "configure")
-    commands.append("end")
-
-    execute(uri, commands, options)
+        return sess.execute(commands,  **kwargs)
