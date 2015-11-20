@@ -6,7 +6,7 @@
 import importlib
 import re
 from urlparse import urlparse
-from arcomm.util import session_defaults, to_list, parse_uri
+from arcomm.util import session_defaults, to_list, parse_uri, merge_dicts
 from arcomm.command import Command
 from arcomm.response import ResponseStore, Response
 from arcomm.protocols.ssh import Ssh
@@ -52,20 +52,20 @@ class Session(object):
 
     def __init__(self):
 
-        # timeout in seconds
-        self.timeout = DEFAULT_TIMEOUT
+        # connection object returned by the protocol adapter
+        self.conn = None
+
+        # # Credentials tuple or object to pass to adapter
+        # self.creds = DEFAULT_CREDS
+
+        # host to connect to
+        self.hostname = DEFAULT_HOST
 
         # Protocol adapter to load
         self.protocol = DEFAULT_PROTOCOL
 
-        # Credentials tuple or object to pass to adapter
-        self.creds = DEFAULT_CREDS
-
-        # host to connect to
-        self.host = DEFAULT_HOST
-
-        # connection object returned by the protocol adapter
-        self.conn = None
+        # timeout in seconds
+        self.options = {}
 
     def __enter__(self):
         return self
@@ -76,58 +76,66 @@ class Session(object):
     def _validate_responses(self, commands, responses):
         pass
 
-    def connect(self, uri, options={}):
+    def connect(self, uri, **kwargs):
         """Connect to the remote host"""
 
-        parts = parse_uri(uri)
+        options = merge_dicts(parse_uri(uri), kwargs)
 
-        creds = options.get('creds', parts.get('creds', self.creds))
+        self.hostname = options.get('hostname') or self.hostname
+        protocol = options.get('protocol') or self.protocol
 
-        hostname = parts['hostname']
-        protocol = parts['protocol']
-
-        if parts['port']:
-            options['port'] = parts['port']
-
-        options['timeout'] = options.get('timeout', self.timeout)
-
-
-
-        # clean up names like: eapi+https
         if '+' in protocol:
-            protocol, transport = parts.scheme.split('+', 1)
+            protocol, transport = self.protocol.split('+', 1)
             options['transport'] = transport
+        else:
+            options['transport'] = options.get('transport')
+        self.protocol = protocol
+
+        options['creds'] = options.get('creds') or DEFAULT_CREDS
+        port = options.get('port')
+
+        if port:
+            options['port'] = port
+
+        options['timeout'] = options.get('timeout') or DEFAULT_TIMEOUT
+
+        self.options = options
 
         self.conn = _load_protocol_adapter(protocol)()
-        self.conn.connect(hostname, creds, options)
+        self.conn.connect(self.hostname, **self.options)
 
     def authorize(self, password='', username=None):
         self.conn.authorize(password, username)
 
     enable = authorize
 
-    def send(self, commands, options={}):
+    def execute(self, commands, **kwargs):
         """send commands"""
 
         store = ResponseStore()
 
         commands = to_list_of_commands(commands)
 
-        responses = self.conn.send(commands, options)
+        responses = self.conn.send(commands, **kwargs)
 
         for item in zip(commands, responses):
 
             if not hasattr(item, '__iter__') or len(item) > 2:
-                raise TypeError('response must be an iterable containing two ' +
-                                'items: (output, errors)')
+                raise TypeError('response must be an iterable containing ' +
+                                'two items: (output, errors)')
 
-            command, outerr = item
-            store.append(Response(command, outerr[0], outerr[1]))
+            command, response = item
+            store.append(Response(command.cmd, response))
 
         return store
 
-    execute = send
+    def clone(self, newhost=None, options={}):
+        clone = self.__class__()
+        return clone.connect(newhost, options)
 
     def close(self):
         if hasattr(self.conn, 'close'):
             self.conn.close()
+
+def session():
+    return Session()
