@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Loads all functions from the api module"""
+
+"""
+
+"""
+
+__version__ = '2.0.0'
+__author__ = 'Jesse Mather'
 
 # pylint: disable=wildcard-import
-from .api import *
-
-__version__ = '1.0.2.1'
+from . import util
+from .api import connect, execute, configure
+from .credentials import Creds, BasicCreds
+from .session import session, Session
+from .response import ResponseStore, Response
+from .exceptions import (
+    ConnectFailed, AuthenticationFailed, AuthorizationFailed, ExecuteFailed
+)
