@@ -73,9 +73,6 @@ class Session(object):
     def __exit__(self, *args):
         self.close()
 
-    def _validate_responses(self, commands, responses):
-        pass
-
     def connect(self, uri, **kwargs):
         """Connect to the remote host"""
 
