@@ -24,12 +24,13 @@ setup(
     description = "Library for controlling to Arista switches",
     long_description = readme,
     classifiers = [
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Intended Audience :: Information Technology",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Testing",
@@ -37,11 +38,10 @@ setup(
     ],
     packages = find_packages(),
     url = "https://github.com/aristanetworks/arcomm",
-    #download_url = "https://github.com/aristanetworks/arcomm/archive/v1.0.0.tar.gz",
     license = "MIT Licesnse",
     entry_points = {
         'console_scripts': [
-            'arcomm = arcomm.console:main',
+            'arcomm = arcomm.entry:main',
         ]
     }
 )
