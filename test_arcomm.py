@@ -22,9 +22,12 @@ def protocol(request):
 def test_entry():
 
     arcomm.execute
+    arcomm.background
+    arcomm.pool
     arcomm.configure
     arcomm.connect
     arcomm.session
+
     arcomm.ResponseStore
     arcomm.Response
     arcomm.ConnectFailed
@@ -44,22 +47,24 @@ def test_execute_bad_auth(protocol):
             protocol=protocol)
 
 def test_execute_bad_command(protocol):
-    with pytest.raises(arcomm.ExecuteFailed):
-        arcomm.execute(HOST, ['show gloc'], protocol=protocol)
+    response = arcomm.execute(HOST, ['show gloc'], protocol=protocol)
+    assert response.status == 'failed'
 
 def test_not_authorized(protocol):
-    with pytest.raises(arcomm.ExecuteFailed):
-        response = arcomm.execute(HOST, ['show running-config'],
-            creds=OPS_CREDS, protocol=protocol)
+    response = arcomm.execute(HOST, ['show running-config'],
+                              creds=OPS_CREDS, protocol=protocol)
+
+    assert response.status == 'failed'
 
 def test_authorize(protocol):
     response = arcomm.execute(HOST, ['show running-config'], creds=OPS_CREDS,
         authorize=ENABLE_SECRET, protocol=protocol)
 
 def test_execute_eapi_unconverted_command():
-    with pytest.raises(arcomm.ExecuteFailed):
-        arcomm.execute(HOST, ['show clock'], encoding='json',
-            protocol='eapi+http')
+
+    response = arcomm.execute(HOST, ['show clock'], encoding='json',
+                              protocol='eapi+http')
+    assert response.status == 'failed'
 
 def test_response_store_access():
     responses = arcomm.execute(HOST, ['show clock', 'show version'],
@@ -71,3 +76,18 @@ def test_response_store_access():
     for r in responses:
         assert hasattr(r, 'command')
         assert hasattr(r, 'output')
+
+def test_background():
+
+    did_stuff = False
+    with arcomm.background(HOST, ['show running-config']) as proc:
+        did_stuff = True
+
+    assert did_stuff
+
+    for res in proc.results:
+        assert isinstance(res, arcomm.ResponseStore)
+
+def test_pool():
+    for res in arcomm.pool([HOST, HOST], ['show version']):
+        assert isinstance(res, arcomm.ResponseStore)
