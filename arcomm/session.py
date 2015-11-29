@@ -11,6 +11,7 @@ from arcomm.command import Command
 from arcomm.response import ResponseStore, Response
 from arcomm.protocols.ssh import Ssh
 from arcomm.credentials import BasicCreds
+from arcomm.exceptions import ExecuteFailed
 
 DEFAULTS = session_defaults()
 DEFAULT_TIMEOUT = DEFAULTS.get('timeout', 30)
@@ -109,20 +110,26 @@ class Session(object):
     def execute(self, commands, **kwargs):
         """send commands"""
 
-        store = ResponseStore()
+        store = ResponseStore(host=self.hostname)
 
         commands = to_list_of_commands(commands)
 
-        responses = self.conn.send(commands, **kwargs)
+        try:
+            responses = self.conn.send(commands, **kwargs)
 
-        for item in zip(commands, responses):
+            for item in zip(commands, responses):
 
-            if not hasattr(item, '__iter__') or len(item) > 2:
-                raise TypeError('response must be an iterable containing ' +
-                                'two items: (output, errors)')
+                if not hasattr(item, '__iter__') or len(item) > 2:
+                    raise TypeError('response must be an iterable containing ' +
+                                    'two items: (output, errors)')
 
-            command, response = item
-            store.append(Response(command.cmd, response))
+                command, response = item
+                store.append(Response(command.cmd, response))
+
+            store.status = 'ok'
+
+        except ExecuteFailed as exc:
+            store.status = 'failed'
 
         return store
 
