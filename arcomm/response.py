@@ -5,6 +5,11 @@ import json
 import re
 from arcomm.util import to_list, indentblock
 
+_status = (
+    ('ok',),
+    ('failed',)
+)
+
 class Response(object):
     """Store a single response"""
     def __init__(self, command, output, error=None):
@@ -43,8 +48,18 @@ class Response(object):
 class ResponseStore(object):
     """List-like object for storing responses"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, host, **kwargs):
+
+        #
         self._store = list()
+
+        #
+        self.host = host
+
+        #
+        self.status = None
+
+        #
         self._keywords = kwargs
 
     def __iter__(self):
@@ -54,10 +69,10 @@ class ResponseStore(object):
         return self._store[item]
 
     def __str__(self):
-        host = self._keywords.get("host", "switch")
+        #host = self._keywords.get('host', 'eos')
         str_ = ""
         for response in self._store:
-            str_ += "{}#{}\n{}\n".format(host, str(response.command).strip(),
+            str_ += "{}#{}\n{}\n".format(self.host, str(response.command).strip(),
                                        response.output)
         return str_
 
