@@ -1,57 +1,85 @@
 # -*- coding: utf-8 -*-
-"""Module for handling async communications"""
+"""
 
-import arcomm.protocol
-from arcomm.exceptions import ConnectFailed, AuthenticationFailed, \
-                              AuthorizationFailed, ExecuteFailed
+"""
+
 import multiprocessing
 import time
 import signal
 import socket
+import logging
 
-def _worker_init():
-    """Tell workers to ignore interrupts"""
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+import arcomm
+from arcomm.session import Session
+from arcomm.exceptions import ExecuteFailed, ConnectFailed, \
+                              AuthenticationFailed, AuthorizationFailed
 
-# pylint: disable=R0913
-def _worker(host, creds, commands, results, protocol=None, timeout=None,
-            **kwargs):
-    """Common worker func. Logs into remote host, executes commands and puts
-    the results in the queue. Called from `Pool` and `Background`"""
-    response = None
-    errmsg = None
-
-    #encoding = kwargs.get("encoding", "text")
-
-    try:
-        conn = arcomm.protocol.factory_connect(host, creds, protocol, timeout)
-        try:
-            if creds.authorize_password is not None:
-                conn.authorize()
-            response = conn.execute(commands, **kwargs)
-        finally:
-            conn.close()
-    except (ConnectFailed, AuthenticationFailed, AuthorizationFailed) as exc:
-        errmsg = exc.message
-
-    results.put(dict(host=host, response=response, error=errmsg))
+# logger = multiprocessing.log_to_stderr()
+# logger.setLevel(logging.INFO)
 
 class QueueError(Exception):
     """Queue has gone away or been deleted"""
 
+def _initialize_worker():
+    """Tell workers to ignore interrupts"""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+def _worker(host, commands, outq, **kwargs):
+    """Common worker func. Logs into remote host, executes commands and puts
+    the results in the queue. Called from `Pool` and `Background`"""
+
+    responses = None
+
+    with Session() as sess:
+        try:
+            sess.connect(host, **kwargs)
+
+            authorize = kwargs.pop('authorize', None)
+
+            if authorize:
+                sess.authorize(authorize)
+
+            responses = sess.execute(commands, **kwargs)
+
+            sess.close()
+
+        except (ConnectFailed,
+                AuthenticationFailed,
+                AuthorizationFailed) as exc:
+            responses = exc.message
+
+    outq.put(responses)
+
 class Pool(object):
-    """Convenience wrapper for Pool.  Send commands to a list of hosts using
-    arcomm.execute"""
-    def __init__(self, hosts, creds, commands, pool_size=10, **kwargs):
+    """
+
+    """
+
+    def __init__(self, hosts, commands, **kwargs):
+
+        #
         self._hosts = hosts
-        self._creds = creds
+
+        #
         self._commands = commands
-        self._pool_size = pool_size
+
+        #
+        self._pool_size = kwargs.pop('pool_size', None) or 10
+
+        #
         self._worker_kwargs = kwargs
-        self._results = Queue()
-        self._async_result = None
-        self._background = None
-        self._pool = multiprocessing.Pool(self._pool_size, _worker_init)
+
+        #
+        self._results = IterQueue()
+
+        #
+        self.background = False
+
+        #
+        #self._async_result = None
+
+        # initialize pool
+        self._pool = multiprocessing.Pool(self._pool_size, _initialize_worker)
 
     def __enter__(self):
         self.start()
@@ -65,43 +93,31 @@ class Pool(object):
         """Returns the results queue"""
         return self._results
 
-    @property
-    def background(self):
-        return self._background
-
-    @background.setter
-    def background(self, value):
-        self._background = True if value else False
-
-    def run(self):
+    def run(self, **kwargs):
         """Run commands on the hosts"""
-        self.start()
+        self.start(**kwargs)
         self.join()
 
-    def start_bg(self, sleep=0):
-        _bg = self.background
-        self.background = True
-        try:
-            self.start(sleep, True)
-        finally:
-            self.background = _bg
-
-    def start(self, sleep=0, background=False):
+    def start(self, delay=0, background=False):
         """Run through host is the pool aysnchronously.  If sleep is > 0, start
         will wait for specified noumber of seconds before returning."""
+
         try:
             for host in self._hosts:
-                args = [host, self._creds, self._commands, self.results]
-                self._async_result = self._pool.apply_async(_worker, args,
-                                                            self._worker_kwargs)
-                if not self._background and not background:
-                    self._async_result.get(2**32)
+                args = [host, self._commands, self.results]
+                res = self._pool.apply_async(_worker, args, self._worker_kwargs)
+
+                if not (self.background or background):
+                    res.get(2**32)
+
             self._pool.close()
+
         except KeyboardInterrupt:
+
             self.kill()
             raise
 
-        time.sleep(sleep)
+        time.sleep(delay)
 
     def join(self):
         """Bring the pool into the current process (Blocking) and wait for jobs
@@ -117,9 +133,8 @@ class Pool(object):
 
     def _finish(self):
         self._results.close()
-        #self._async_result.get()
 
-class Queue(object):
+class IterQueue(object):
     """Simple queue that can be passed between processes"""
     _sentinel = "__STOP__"
 
