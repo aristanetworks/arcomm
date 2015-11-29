@@ -98,3 +98,28 @@ def parse_uri(uri=None):
         'protocol': protocol,
         'transport': transport
     }
+
+def load_endpoints(path):
+    endpoints = []
+
+    with open(path, 'r') as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            if re.search(r"^\s*(#|!)", line):
+                continue
+            match = re.search(r"(?:[a-f0-9:.]+\s+)?(\S+)", line, re.IGNORECASE)
+            if match:
+                line = match.group(1)
+
+            endpoints.append(line)
+
+    return endpoints
+
+def mpop(lst, length, offset=0):
+    popped = []
+    for _ in range(offset, length+offset):
+        # always pop from offset.
+        popped.append(lst.pop(offset))
+    return popped
