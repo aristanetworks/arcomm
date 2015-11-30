@@ -5,6 +5,7 @@
 
 import importlib
 import re
+import time
 from urlparse import urlparse
 from arcomm.util import session_defaults, to_list, parse_uri, merge_dicts
 from arcomm.command import Command
@@ -19,7 +20,7 @@ DEFAULT_PROTOCOL = DEFAULTS.get('protocol', 'eapi+http')
 DEFAULT_CREDS = DEFAULTS.get('creds')
 DEFAULT_HOST = DEFAULTS.get('host', 'localhost')
 
-def to_list_of_commands(commands):
+def _to_commands(commands):
     """Converts a command or list of commands to a list of Command objects"""
     commands = to_list(commands)
     _loc = []
@@ -112,7 +113,7 @@ class Session(object):
 
         store = ResponseStore(host=self.hostname)
 
-        commands = to_list_of_commands(commands)
+        commands = _to_commands(commands)
 
         try:
             responses = self.conn.send(commands, **kwargs)
@@ -132,6 +133,33 @@ class Session(object):
             store.status = 'failed'
 
         return store
+
+    # def execute_until(self, commands, condition, timeout=30, sleep=1,
+    #                   exclude=False, **kwargs):
+    #     """Runs a command until a condition has been met or the timeout
+    #     (in seconds) is exceeded. If 'exclude' is set this function will return
+    #     only if the string is _not_ present"""
+    #     #pylint: disable=too-many-arguments
+    #     start_time = time.time()
+    #     check_time = start_time
+    #     response = None
+    #     while (check_time - timeout) < start_time:
+    #         response = self.execute(commands)
+    #         _match = re.search(re.compile(condition), str(response))
+    #         if exclude:
+    #             if not _match:
+    #                 return response
+    #         elif _match:
+    #             return response
+    #         time.sleep(sleep)
+    #         check_time = time.time()
+    #     raise ValueError("condition did not match withing timeout period")
+    #
+    # def execute_while(self, commands, condition, timeout=30, sleep=1):
+    #     """Runs a command while a condition exists"""
+    #     #pylint: disable=too-many-arguments
+    #     self.execute_until(commands, condition, timeout=timeout, sleep=sleep,
+    #                        exclude=True, **kwargs)
 
     def clone(self, newhost=None, options={}):
         clone = self.__class__()

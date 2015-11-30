@@ -34,12 +34,6 @@ def execute(uri, commands, **kwargs):
 
         return sess.execute(commands,  **kwargs)
 
-def background(uri, commands, **kwargs):
-
-    pool = Pool([uri], commands, 1, **kwargs)
-    pool.background = True
-    return pool
-
 def pool(endpoints, commands, **kwargs):
     endpoints = to_list(endpoints)
 
