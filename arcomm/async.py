@@ -128,7 +128,7 @@ class Pool(object):
     def kill(self):
         """Terminate the pool and empty the queue"""
         self._pool.terminate()
-        self._results = Queue()
+        self._results = IterQueue()
         self._finish()
 
     def _finish(self):
