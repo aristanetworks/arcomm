@@ -34,7 +34,7 @@ def execute(uri, commands, **kwargs):
 
         return sess.execute(commands,  **kwargs)
 
-def pool(endpoints, commands, **kwargs):
+def batch(endpoints, commands, **kwargs):
     endpoints = to_list(endpoints)
 
     #pool_size = kwargs.pop('pool_size', None) or 10
