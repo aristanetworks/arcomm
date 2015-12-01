@@ -5,8 +5,10 @@
 from arcomm.session import Session
 from arcomm.util import to_list
 from arcomm.async import Pool
+def connect(uri, creds=None, **kwargs):
+    if creds:
+        kwargs['creds'] = creds
 
-def connect(uri, **kwargs):
     sess = Session()
     sess.connect(uri, **kwargs)
     return sess
