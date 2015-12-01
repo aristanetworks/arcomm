@@ -58,26 +58,6 @@ def background(uri, commands, **kwargs):
     pool.background = True
     return pool
 
-# def execute_until(connection, commands, condition, timeout=30, sleep=5,
-#                   exclude=False):
-#     """Runs a command until a condition has been met or the timeout
-#     (in seconds) is exceeded. If 'exclude' is set this function will return
-#     only if the string is _not_ present"""
-#     #pylint: disable=too-many-arguments
-#     start_time = time.time()
-#     check_time = start_time
-#     response = None
-#     while (check_time - timeout) < start_time:
-#         response = execute(connection, commands)
-#         _match = re.search(re.compile(condition), str(response))
-#         if exclude:
-#             if not _match:
-#                 return response
-#         elif _match:
-#             return response
-#         time.sleep(sleep)
-#         check_time = time.time()
-#     raise ValueError("condition did not match withing timeout period")
 def get_credentials(username, password="", authorize_password=None,
                     private_key=None):
     """Return a Creds object. If username and password are not passed the user
