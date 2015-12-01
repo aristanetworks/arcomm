@@ -92,3 +92,26 @@ def test_background():
 def test_batch():
     for res in arcomm.batch([HOST, HOST], ['show version']):
         assert isinstance(res, arcomm.ResponseStore)
+
+def test_oldway_funcs():
+
+    username = ADMIN_CREDS.username
+    password = ADMIN_CREDS.password
+
+    creds = arcomm.get_credentials(username, password)
+    commands = ['show clock']
+    conn = arcomm.connect(HOST, creds)
+    assert conn
+    arcomm.authorize(conn)
+    assert arcomm.authorized(conn)
+    assert arcomm.clone(conn)
+    assert arcomm.configure(conn, ['ip host dummy localhost', 'no ip host dummy'])
+    assert arcomm.execute_pool([HOST], creds, commands)
+    assert arcomm.execute_bg(HOST, creds, commands)
+    assert arcomm.execute_once(HOST, creds, commands)
+    arcomm.execute_until(conn, commands, condition=r'\:[0-5]0',
+                         timeout=11, sleep=1)
+    arcomm.close(conn)
+
+def test_entry():
+    pass
