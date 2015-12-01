@@ -138,9 +138,13 @@ class Session(object):
 
         return store
 
-    def clone(self, newhost=None, options={}):
-        clone = self.__class__()
-        return clone.connect(newhost, options)
+    def clone(self, uri=None, **kwargs):
+        cloned = self.__class__()
+        if not uri:
+            uri = self.hostname
+        kwargs = merge_dicts(self.options, parse_uri(uri), kwargs)
+        cloned.connect(uri, **kwargs)
+        return cloned
 
     def close(self):
         if hasattr(self.conn, 'close'):
