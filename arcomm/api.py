@@ -8,6 +8,8 @@ import time
 from arcomm.session import Session
 from arcomm.util import to_list
 from arcomm.async import Pool
+from arcomm.credentials import BasicCreds
+
 def connect(uri, creds=None, **kwargs):
     if creds:
         kwargs['creds'] = creds
@@ -76,3 +78,10 @@ def background(uri, commands, **kwargs):
 #         time.sleep(sleep)
 #         check_time = time.time()
 #     raise ValueError("condition did not match withing timeout period")
+def get_credentials(username, password="", authorize_password=None,
+                    private_key=None):
+    """Return a Creds object. If username and password are not passed the user
+    will be prompted"""
+    return BasicCreds(username, password,
+                            authorize_password=authorize_password,
+                            private_key=private_key)
