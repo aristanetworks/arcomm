@@ -2,6 +2,9 @@
 
 """High level functional API for using arcomm modules"""
 
+import re
+import time
+
 from arcomm.session import Session
 from arcomm.util import to_list
 from arcomm.async import Pool
