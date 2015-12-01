@@ -74,23 +74,40 @@ def main():
                           "execute. template variables will be processed if "
                           "Jinja2 is installed and `--variables` is also "
                           "supplied on the command line"))
-    #
-    # arg("--variables", help=("Replacements for template variables in script "
-    #                          "file (must be JSON formatted)"))
+
+    arg("--variables", help=("Replacements for template variables in script "
+                             "file (must be JSON formatted)"))
 
     args = parser.parse_args()
+
+    options = {}
+    endpoints = []
 
     if args.version:
         parser.exit(0, arcomm.__version__ + "\n")
 
     if args.hosts_file:
-        args.hosts = arcomm.util.load_endpoints(args.hosts_file)
+        endpoints = arcomm.util.load_endpoints(args.hosts_file)
+    else:
+        endpoints = args.endpoints
 
-    if args.authorize and not args.authorize_password:
-        args.authorize_password = ""
+    if not endpoints:
+        raise ValueError('no endpoints')
 
-    creds = arcomm.BasicCreds(args.username, args.password)
+    if args.authorize_password:
+        options['authorize'] = args.authorize_password
+    elif args.authorize:
+        options['authorize'] = ''
+
+    options['creds'] = arcomm.BasicCreds(args.username, args.password)
+
+    options['timeout'] = args.timeout
+
+    options['encoding'] = args.encoding
+
     script = []
+
+
     if args.script:
         with open(path, 'r') as fh:
             script = fh.read()
@@ -98,14 +115,36 @@ def main():
     elif not sys.stdin.isatty():
         for line in sys.stdin:
             script.append(line)
+    else:
+        isatty = sys.stdin.isatty()
+        if isatty:
+            print "Enter commands (one per line)."
+            print "Enter '.' alone to send or 'Crtl-C' to quit."
+            try:
+                while True:
+                    line = raw_input('> ')
+                    if line == ".":
+                        break
+                    script.append(line)
+            except (KeyboardInterrupt, SystemExit):
+                print "Commands aborted."
+                sys.exit()
+        else:
+            for line in sys.stdin:
+                script.append(line)
 
-    if script:
-        for res in arcomm.pool(args.endpoints, script):
-            to_yaml(res)
-        print '...'
-    # else:
-    #     cli = arcomm.Cli()
-    #     cli.cmdloop()
+    if args.variables:
+        import jinja2
+        replacements = json.loads(variables)
+        script = "\n".join(script)
+        template = jinja2.Template(script)
+        script = template.render(replacements)
+        script = script.splitlines()
+
+    for res in arcomm.batch(args.endpoints, script, **options):
+        to_yaml(res)
+    print '...'
+
 
 if __name__ == "__main__":
     main()
