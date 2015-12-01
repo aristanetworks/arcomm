@@ -54,6 +54,9 @@ class Session(object):
 
     def __init__(self):
 
+        #
+        self.authorized = False
+
         # connection object returned by the protocol adapter
         self.conn = None
 
@@ -105,6 +108,7 @@ class Session(object):
 
     def authorize(self, password='', username=None):
         self.conn.authorize(password, username)
+        self.authorized=True
 
     enable = authorize
 
