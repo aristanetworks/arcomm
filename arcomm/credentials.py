@@ -11,9 +11,6 @@ class BaseCreds(collections.Mapping):
     def __init__(self, **kwargs):
         self._creds = dict(**kwargs)
 
-    def __getattr__(self, name):
-       return self._creds[name]
-
     def __getitem__(self, name):
         return self._creds[name]
 
@@ -39,6 +36,14 @@ class BasicCreds(BaseCreds):
 
         super(BasicCreds, self).__init__(username=username, password=password,
             **kwargs)
+
+    @property
+    def username(self):
+        return self._creds['username']
+
+    @property
+    def password(self):
+        return self._creds['password']
 
     def __repr__(self):
        """Do show the password when logging"""
