@@ -46,14 +46,5 @@ class BasicCreds(BaseCreds):
     def auth(self):
         return (self.username, self.password)
 
-    # @property
-    # def uripart(self):
-    #     """Return a string containg: <username>:<password> for use with a URI"""
-    #     parts = [self.username]
-    #     if self.password:
-    #         parts.append(self.password)
-    #     return ":".join(parts)
-    # uri = uripart
-
 class Creds(BasicCreds):
     pass
