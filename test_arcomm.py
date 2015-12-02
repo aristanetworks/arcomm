@@ -93,6 +93,16 @@ def test_batch():
     for res in arcomm.batch([HOST, HOST], ['show version']):
         assert isinstance(res, arcomm.ResponseStore)
 
+def test_mixin_until():
+    with arcomm.Session() as sess:
+        sess.connect(HOST, creds=ADMIN_CREDS)
+        sess.execute_until(['show clock'], condition=r'\:[0-5]0', timeout=30,
+                           sleep=.1)
+
+        with pytest.raises(ValueError):
+            sess.execute_while(['show version'], condition=r'.*', timeout=5,
+                               sleep=1)
+
 def test_oldway_funcs():
 
     username = ADMIN_CREDS.username
@@ -109,8 +119,10 @@ def test_oldway_funcs():
     assert arcomm.execute_pool([HOST], creds, commands)
     assert arcomm.execute_bg(HOST, creds, commands)
     assert arcomm.execute_once(HOST, creds, commands)
+
     arcomm.execute_until(conn, commands, condition=r'\:[0-5]0',
-                         timeout=11, sleep=1)
+                         timeout=11, sleep=.1)
+
     arcomm.close(conn)
 
 # def test_entry():
