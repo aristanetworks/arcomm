@@ -28,7 +28,6 @@ def to_yaml(response):
     host = response.host
     status = response.status
 
-    print '---'
     print 'host: {}'.format(host)
     print 'status: {}'.format(status)
     if status == 'failed':
@@ -53,19 +52,16 @@ def main():
 
     arg("-v", "--version", action="store_true", help="Display version info")
 
-    arg("--protocol",
-        help=("Set the default protocol or protocols. If more than one is "
-              "supplied, they will be tried in order"))
+    arg("--protocol", help=("Set the protocol. By default 'eapi' is used. "
+                            "Note: eapi and eapi+http are the same"),
+        choices=["eapi", "eapi+http", "eapi+https", "ssh"])
 
     arg("--encoding", default="text", choices=["json", "text"],
         help="Control output formatting")
 
-    arg("-u", "--username", default="admin",
-        help="Specifies the username on the switch")
+    arg("-u", "--username", help="Specifies the username on the switch")
 
-    arg("-p", "--password", default="",
-        help=("Specifies users password.  If not supplied, the user will be "
-              "prompted"))
+    arg("-p", "--password", default="", help="Specifies users password.")
 
     arg("--authorize", action="store_true")
 
@@ -118,7 +114,6 @@ def main():
     options['encoding'] = args.encoding
 
     script = []
-
 
     if args.script:
         with open(path, 'r') as fh:
