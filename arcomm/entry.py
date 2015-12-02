@@ -106,7 +106,9 @@ def main():
     elif args.authorize:
         options['authorize'] = ''
 
-    options['creds'] = arcomm.BasicCreds(args.username, args.password)
+    if args.username:
+        password = args.password or ''
+        options['creds'] = arcomm.BasicCreds(args.username, password)
 
     if args.protocol:
         options['protocol'] = args.protocol
