@@ -246,4 +246,4 @@ API Usage
     u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',
     u'hardwareRevision': u''}
 
-In [8]:
+    In [8]:
