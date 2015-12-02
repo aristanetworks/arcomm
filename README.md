@@ -194,6 +194,7 @@ Command-line w/ --variables argument:
 API Usage
 ---------
 
+```
     $ ipython
     Python 2.7.6 (default, Mar 22 2014, 22:59:38)
     Type "copyright", "credits" or "license" for more information.
@@ -247,3 +248,4 @@ API Usage
     u'hardwareRevision': u''}
 
     In [8]:
+```
