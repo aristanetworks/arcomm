@@ -78,10 +78,10 @@ def test_response_store_access():
         assert hasattr(r, 'command')
         assert hasattr(r, 'output')
 
-def test_background():
+def test_background(protocol):
 
     did_stuff = False
-    with arcomm.background(HOST, ['show running-config']) as proc:
+    with arcomm.background(HOST, ['show running-config all'], protocol=protocol) as proc:
         did_stuff = True
 
     assert did_stuff
@@ -113,5 +113,5 @@ def test_oldway_funcs():
                          timeout=11, sleep=1)
     arcomm.close(conn)
 
-def test_entry():
-    pass
+# def test_entry():
+#     pass

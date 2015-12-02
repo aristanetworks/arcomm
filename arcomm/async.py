@@ -7,13 +7,15 @@ import multiprocessing
 import time
 import signal
 import socket
+import sys
+import traceback
 import logging
 
 import arcomm
 from arcomm.session import Session
 from arcomm.exceptions import ExecuteFailed, ConnectFailed, \
                               AuthenticationFailed, AuthorizationFailed
-
+from arcomm.util import to_list
 # logger = multiprocessing.log_to_stderr()
 # logger.setLevel(logging.INFO)
 
@@ -46,7 +48,9 @@ def _worker(host, commands, outq, **kwargs):
         except (ConnectFailed,
                 AuthenticationFailed,
                 AuthorizationFailed) as exc:
-            responses = exc.message
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            responses = repr(traceback.format_exception(exc_type, exc_value,
+                                            exc_traceback))
 
     outq.put(responses)
 
@@ -58,7 +62,7 @@ class Pool(object):
     def __init__(self, hosts, commands, **kwargs):
 
         #
-        self._hosts = hosts
+        self._hosts = to_list(hosts)
 
         #
         self._commands = commands

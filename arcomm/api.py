@@ -54,7 +54,7 @@ def batch(endpoints, commands, **kwargs):
         yield item
 
 def background(uri, commands, **kwargs):
-    pool = Pool(uri, commands, **kwargs)
+    pool = Pool([uri], commands, **kwargs)
     pool.background = True
     return pool
 
