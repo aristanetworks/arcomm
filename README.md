@@ -68,7 +68,6 @@ Console Example
     > show version
     > .
     ---
-    ---
     host: veos
     status: ok
     commands:
