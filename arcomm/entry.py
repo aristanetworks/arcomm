@@ -147,7 +147,7 @@ def main():
 
     if args.variables:
         import jinja2
-        replacements = json.loads(variables)
+        replacements = json.loads(args.variables)
         script = "\n".join(script)
         template = jinja2.Template(script)
         script = template.render(replacements)
