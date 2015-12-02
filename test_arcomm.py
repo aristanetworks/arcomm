@@ -24,7 +24,7 @@ def test_entry():
 
     arcomm.execute
     arcomm.background
-    arcomm.pool
+    arcomm.batch
     arcomm.configure
     arcomm.connect
     arcomm.session
