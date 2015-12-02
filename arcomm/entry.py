@@ -46,7 +46,7 @@ def main():
 
     arg("-v", "--version", action="store_true", help="Display version info")
 
-    arg("--protocol", default=["eapi", "ssh"],
+    arg("--protocol",
         help=("Set the default protocol or protocols. If more than one is "
               "supplied, they will be tried in order"))
 
@@ -100,6 +100,9 @@ def main():
         options['authorize'] = ''
 
     options['creds'] = arcomm.BasicCreds(args.username, args.password)
+
+    if args.protocol:
+        options['protocol'] = args.protocol
 
     options['timeout'] = args.timeout
 
