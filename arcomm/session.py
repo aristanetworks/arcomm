@@ -47,7 +47,7 @@ def _load_protocol_adapter(name):
     # Finally, we retrieve the Class
     return getattr(module, class_)
 
-class Session(object):
+class BaseSession(object):
     """
     Base Session
     """
@@ -149,6 +149,42 @@ class Session(object):
     def close(self):
         if hasattr(self.conn, 'close'):
             self.conn.close()
+
+class UntilMixin(object):
+
+    def execute_until(self, commands, condition, **kwargs):
+        """Runs a command until a condition has been met or the timeout
+        (in seconds) is exceeded. If 'exclude' is set this function will return
+        only if the string is _not_ present"""
+
+        #pylint: disable=too-many-arguments
+
+        timeout = kwargs.pop('timeout', None) or 30
+        sleep = kwargs.pop('sleep', None) or 1
+        exclude = kwargs.pop('exclude', False)
+
+        start_time = time.time()
+        check_time = start_time
+        response = None
+
+        while (check_time - timeout) < start_time:
+            response = self.execute(commands, **kwargs)
+            match = re.search(re.compile(condition), str(response))
+            if exclude:
+                if not match:
+                    return response
+            elif match:
+                return response
+            time.sleep(sleep)
+            check_time = time.time()
+
+        raise ValueError("condition did not match withing timeout period")
+
+    def execute_while(self, commands, condition, **kwargs):
+        self.execute_until(commands, condition, exclude=True, **kwargs)
+
+class Session(UntilMixin, BaseSession):
+    pass
 
 def session():
     return Session()
