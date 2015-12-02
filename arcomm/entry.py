@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Command line interface for arcomm"""
 
+import json
 import re
 import sys
 import arcomm
@@ -9,18 +10,23 @@ def indentblock(text, spaces=0):
     text = text.splitlines() if hasattr(text, 'splitlines') else []
     return '\n'.join([' ' * spaces + line for line in text])
 
+def to_json(response):
+    host = response.host
+    status = response.status
+
+    commands = []
+    result = {"host": response.host, "status": response.status}
+
+    for res in response:
+        commands.append({"command": res.command, "output": res.output})
+    result['commands'] = commands
+
+    print json.dumps(result, indent=4, separators=(',', ': '))
+
 def to_yaml(response):
     host = response.host
     status = response.status
 
-    # if args.encoding == "json":
-    #     result = {"host": host}
-    #     if status == 'failed':
-    #         result["error"] = error
-    #     if hasattr(responses, "to_dict"):
-    #         result["commands"] = responses.to_dict()
-    #     print json.dumps(result, indent=4, separators=(',', ': '))
-    # else:
     print '---'
     print 'host: {}'.format(host)
     print 'status: {}'.format(status)
@@ -145,7 +151,11 @@ def main():
         script = script.splitlines()
 
     for res in arcomm.batch(args.endpoints, script, **options):
-        to_yaml(res)
+        print '---'
+        if options['encoding'] == 'json':
+            to_json(res)
+        else:
+            to_yaml(res)
     print '...'
 
 
