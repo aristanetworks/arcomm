@@ -40,7 +40,7 @@ class Response(object):
 
     def __str__(self):
         """return the data from the response as a string"""
-        return self._output
+        return str(self._output)
 
     # def to_dict(self):
     #     return {"command": str(self.command), "output": self.output, "errors": self.errors}
