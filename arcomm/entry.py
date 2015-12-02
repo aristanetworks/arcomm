@@ -7,6 +7,7 @@ import sys
 import arcomm
 
 def indentblock(text, spaces=0):
+    """Indent multiple lines of text to the same level"""
     text = text.splitlines() if hasattr(text, 'splitlines') else []
     return '\n'.join([' ' * spaces + line for line in text])
 
