@@ -26,14 +26,6 @@ class BaseCreds(collections.Mapping):
 class BasicCreds(BaseCreds):
 
     def __init__(self, username, password, **kwargs):
-        if not username:
-            username = getpass.getuser()
-            _prompt = "Please enter username [{}]:".format(username)
-            username = raw_input(_prompt) or username
-
-        if password is None:
-            password = getpass.getpass('Password for %s: ' % username)
-
         super(BasicCreds, self).__init__(username=username, password=password,
             **kwargs)
 
