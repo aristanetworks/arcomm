@@ -122,7 +122,7 @@ class Eapi(BaseProtocol):
 
     def connect(self, host, creds, **kwargs):
 
-        transport = kwargs.get('transport', 'http')
+        transport = kwargs.get('transport', None) or 'http'
         port = kwargs.get('port')
 
         self._conn = self._transports[transport]()
