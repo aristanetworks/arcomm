@@ -5,7 +5,7 @@
 import re
 import time
 
-from arcomm.session import Session
+from arcomm.session import BaseSession, Session
 from arcomm.util import to_list
 from arcomm.async import Pool
 from arcomm.credentials import BasicCreds
@@ -28,18 +28,28 @@ def configure(uri, commands,  **kwargs):
 
 def execute(uri, commands, **kwargs):
 
-    with Session() as sess:
+    close = False
+    if not isinstance(uri, BaseSession):
+        sess = Session()
         sess.connect(uri,  **kwargs)
+    else:
+        sess = uri
+        close = True
 
-        authorize = kwargs.get('authorize')
-        if authorize:
-            if hasattr(authorize, '__iter__'):
-                username, password = authorize[0], authorize[1]
-            else:
-                username, password = ('', authorize)
-            sess.authorize(password, username)
+    authorize = kwargs.pop('authorize', None)
+    if authorize:
+        if hasattr(authorize, '__iter__'):
+            username, password = authorize[0], authorize[1]
+        else:
+            username, password = ('', authorize)
+        sess.authorize(password, username)
 
-        return sess.execute(commands,  **kwargs)
+    response = sess.execute(commands,  **kwargs)
+
+    if close:
+        sess.close() 
+
+    return response
 
 def batch(endpoints, commands, **kwargs):
     endpoints = to_list(endpoints)
@@ -57,6 +67,11 @@ def background(uri, commands, **kwargs):
     pool = Pool([uri], commands, **kwargs)
     pool.background = True
     return pool
+
+def tap(callback, func, *args, **kwargs):
+    result = func(*args, **kwargs)
+    callback(result)
+    return result
 
 #
 # Old functions, backward compatible
