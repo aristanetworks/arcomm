@@ -104,11 +104,11 @@ class BaseSession(object):
         self.options = options
 
         self.conn = _load_protocol_adapter(protocol)()
-        self.conn.connect(self.hostname, **self.options)
+        self.conn.connect(self.hostname, self.creds, **self.options)
 
     def authorize(self, password='', username=None):
         self.conn.authorize(password, username)
-        self.authorized=True
+        self.authorized = (password, username)
 
     enable = authorize
 
@@ -140,10 +140,15 @@ class BaseSession(object):
 
     def clone(self, uri=None, **kwargs):
         cloned = self.__class__()
+
         if not uri:
             uri = self.hostname
+
         kwargs = merge_dicts(self.options, parse_uri(uri), kwargs)
         cloned.connect(uri, **kwargs)
+        if self.authorized:
+            cloned.authorize(*self.authorized)
+
         return cloned
 
     def close(self):
