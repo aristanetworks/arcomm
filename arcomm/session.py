@@ -150,6 +150,8 @@ class BaseSession(object):
         if hasattr(self.conn, 'close'):
             self.conn.close()
 
+        self.conn = None
+
 class UntilMixin(object):
 
     def execute_until(self, commands, condition, **kwargs):
