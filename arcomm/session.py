@@ -83,17 +83,17 @@ class BaseSession(object):
 
         options = merge_dicts(parse_uri(uri), kwargs)
 
-        self.hostname = options.get('hostname') or self.hostname
-        protocol = options.get('protocol') or self.protocol
+        self.hostname = options.pop('hostname', None) or self.hostname
 
+        protocol = options.pop('protocol', None) or self.protocol
+        transport = None
         if '+' in protocol:
             protocol, transport = self.protocol.split('+', 1)
-            options['transport'] = transport
-        else:
-            options['transport'] = options.get('transport')
+
+        options['transport'] = options.get('transport') or transport
         self.protocol = protocol
 
-        options['creds'] = options.get('creds') or DEFAULT_CREDS
+        self.creds = options.pop('creds', None) or DEFAULT_CREDS
         port = options.get('port')
 
         if port:
