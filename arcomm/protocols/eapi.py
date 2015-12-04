@@ -149,7 +149,7 @@ class Eapi(BaseProtocol):
             response = self._conn.send(_format_commands(commands),
                                        encoding=encoding, timestamps=timestamps)
         #     print "RESPONSE:", response
-        except requests.HTTPError as exc:
+        except (requests.HTTPError, requests.ConnectionError) as exc:
             raise ExecuteFailed(exc.message)
 
         data = response.json()
