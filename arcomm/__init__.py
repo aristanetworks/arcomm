@@ -9,7 +9,7 @@ __author__ = 'Jesse Mather'
 
 # pylint: disable=wildcard-import
 from . import util
-from .api import connect, execute, configure, background, batch
+from .api import background, batch, configure, connect, execute, tap
 
 #
 # old v1 funcs
