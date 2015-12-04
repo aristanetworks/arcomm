@@ -28,13 +28,12 @@ def configure(uri, commands,  **kwargs):
 
 def execute(uri, commands, **kwargs):
 
-    # close = False
+    # allow an existing session to be used
     if not isinstance(uri, BaseSession):
         sess = Session()
         sess.connect(uri,  **kwargs)
     else:
         sess = uri
-        # close = True
 
     authorize = kwargs.pop('authorize', None)
     if authorize:
@@ -45,9 +44,6 @@ def execute(uri, commands, **kwargs):
         sess.authorize(password, username)
 
     response = sess.execute(commands,  **kwargs)
-    #
-    # if close:
-    #     sess.close()
 
     return response
 
