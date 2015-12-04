@@ -70,14 +70,15 @@ class Pool(object):
         #
         self._pool_size = kwargs.pop('pool_size', None) or 10
 
+
+        #
+        self.background = kwargs.pop('background', False)
+
         #
         self._worker_kwargs = kwargs
 
         #
         self._results = IterQueue()
-
-        #
-        self.background = False
 
         #
         #self._async_result = None
