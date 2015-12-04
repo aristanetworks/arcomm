@@ -42,6 +42,10 @@ def test_invalid_host():
 def test_execute_ok(protocol):
     response = arcomm.execute(HOST, ['show clock'], protocol=protocol)
 
+def test_execute_sess():
+    conn = arcomm.connect(HOST, creds=ADMIN_CREDS)
+    arcomm.execute(conn, 'show version')
+
 def test_execute_bad_auth(protocol):
     with pytest.raises(arcomm.AuthenticationFailed):
         arcomm.connect(HOST, creds=arcomm.BasicCreds('jerk', 'store'),
@@ -103,6 +107,17 @@ def test_mixin_until():
             sess.execute_while(['show version'], condition=r'.*', timeout=5,
                                sleep=1)
 
+def test_tap():
+    class _Mark(object): pass
+
+    bob = _Mark()
+    def callback(result):
+        #print result
+        bob.was_here = True
+
+    result = arcomm.tap(callback, arcomm.execute, 'veos', 'show version')
+    assert hasattr(bob, 'was_here')
+
 def test_oldway_funcs():
 
     username = ADMIN_CREDS.username
@@ -124,6 +139,3 @@ def test_oldway_funcs():
                          timeout=11, sleep=.1)
 
     arcomm.close(conn)
-
-# def test_entry():
-#     pass
