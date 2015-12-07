@@ -15,10 +15,10 @@ from arcomm.util import to_list
 try:
     import paramiko
 except ImportError:
-    ProtocolException("paramiko is required for SSH connections")
+    raise ProtocolException("paramiko is required for SSH connections")
 
 class Ssh(BaseProtocol):
-    """Specialize SSH class for interacting with Arista switches"""
+    """SSH class for interacting with Arista switches"""
 
     def __init__(self):
 
@@ -35,8 +35,9 @@ class Ssh(BaseProtocol):
 
         # possible command prompts
         self._prompt_re = [
-            # Match on:
+            # Match on examples:
             # cs-spine-2a......14:08:54#
+            # cs-spine-2a[14:08:54]#
             # cs-spine-2a>
             # cs-spine-2a#
             # cs-spine-2a(s1)#

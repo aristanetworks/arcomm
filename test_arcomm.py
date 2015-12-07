@@ -85,7 +85,8 @@ def test_response_store_access():
 def test_background(protocol):
 
     did_stuff = False
-    with arcomm.background(HOST, ['show running-config all'], protocol=protocol) as proc:
+    with arcomm.background(HOST, ['show running-config all'],
+                           protocol=protocol) as proc:
         did_stuff = True
 
     assert did_stuff
@@ -130,7 +131,8 @@ def test_oldway_funcs():
     arcomm.authorize(conn)
     assert arcomm.authorized(conn)
     assert arcomm.clone(conn)
-    assert arcomm.configure(conn, ['ip host dummy localhost', 'no ip host dummy'])
+    assert arcomm.configure(conn, ['ip host dummy localhost',
+                                   'no ip host dummy'])
     assert arcomm.execute_pool([HOST], creds, commands)
     assert arcomm.execute_bg(HOST, creds, commands)
     assert arcomm.execute_once(HOST, creds, commands)

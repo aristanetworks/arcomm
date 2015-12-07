@@ -61,7 +61,7 @@ class BaseSession(object):
         self.conn = None
 
         # # Credentials tuple or object to pass to adapter
-        # self.creds = DEFAULT_CREDS
+        self.creds = DEFAULT_CREDS
 
         # host to connect to
         self.hostname = DEFAULT_HOST

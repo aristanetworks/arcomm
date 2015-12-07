@@ -12,5 +12,5 @@ class BaseProtocol(object):
     def send(self, command):
         raise NotImplementedError()
 
-    def super(self, creds=('', '')):
+    def authorize(self, creds=('', '')):
         raise NotImplementedError()
