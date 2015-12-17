@@ -35,9 +35,12 @@ def _to_commands(commands):
 def _load_protocol_adapter(name):
     """Load protocol module from name"""
 
+    package = None
     if __name__ == '__main__':
+        package = 'arcomm'
+    else:
+        package, _ = __name__.split('.', 1)
 
-    package, _ = __name__.split('.', 1)
     path = '.'.join((package, 'protocols', name))
     module = importlib.import_module(path)
     class_ = re.sub(r'_', '', name.title())
