@@ -10,32 +10,33 @@ from arcomm.util import to_list
 from arcomm.async import Pool
 from arcomm.credentials import BasicCreds
 
-def connect(uri, creds=None, **kwargs):
-    if creds:
-        kwargs['creds'] = creds
+def connect(endpoint, creds=None, protocol=None, **kwargs):
 
-    sess = Session()
-    sess.connect(uri, **kwargs)
+    sess = Session(endpoint, creds, protocol, **kwargs)
+    sess.connect()
+
     return sess
 
-def configure(uri, commands,  **kwargs):
+def configure(endpoint, commands,  **kwargs):
 
     commands = to_list(commands)
     commands.insert(0, "configure")
     commands.append("end")
 
-    execute(uri, commands,  **kwargs)
+    execute(endpoint, commands,  **kwargs)
 
-def execute(uri, commands, **kwargs):
-
-    # allow an existing session to be used
-    if not isinstance(uri, BaseSession):
-        sess = Session()
-        sess.connect(uri,  **kwargs)
-    else:
-        sess = uri
+def execute(endpoint, commands, **kwargs):
 
     authorize = kwargs.pop('authorize', None)
+
+    # allow an existing session to be used
+    if not isinstance(endpoint, BaseSession):
+        sess = Session(endpoint, **kwargs)
+        sess.connect()
+    else:
+        sess = endpoint
+
+
     if authorize:
         if hasattr(authorize, '__iter__'):
             username, password = authorize[0], authorize[1]
@@ -59,8 +60,8 @@ def batch(endpoints, commands, **kwargs):
     for item in pool.results:
         yield item
 
-def background(uri, commands, **kwargs):
-    pool = Pool([uri], commands, **kwargs)
+def background(endpoint, commands, **kwargs):
+    pool = Pool([endpoint], commands, **kwargs)
     pool.background = True
     return pool
 
@@ -81,7 +82,7 @@ def authorized(connection):
     """Return authorization status of connection"""
     return connection.authorized
 
-def clone(connection, uri=None, creds=None, protocol=None, timeout=None,
+def clone(connection, endpoint=None, creds=None, protocol=None, timeout=None,
           **kwargs):
 
     if creds:
@@ -93,7 +94,7 @@ def clone(connection, uri=None, creds=None, protocol=None, timeout=None,
     if timeout:
         kwargs['timeout'] = timeout
 
-    return connection.clone(uri, **kwargs)
+    return connection.clone(endpoint, **kwargs)
 
 def monitor(connection, func):
     pass
