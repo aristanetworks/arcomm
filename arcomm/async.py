@@ -31,10 +31,8 @@ def _worker(host, commands, outq, **kwargs):
     the results in the queue. Called from `Pool` and `Background`"""
 
     responses = None
-
-    with Session() as sess:
-        try:
-            sess.connect(host, **kwargs)
+    try:
+        with Session(host, **kwargs) as sess:
 
             authorize = kwargs.pop('authorize', None)
 
@@ -43,14 +41,12 @@ def _worker(host, commands, outq, **kwargs):
 
             responses = sess.execute(commands, **kwargs)
 
-            sess.close()
-
-        except (ConnectFailed,
-                AuthenticationFailed,
-                AuthorizationFailed) as exc:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            responses = repr(traceback.format_exception(exc_type, exc_value,
-                                            exc_traceback))
+    except (ConnectFailed,
+            AuthenticationFailed,
+            AuthorizationFailed) as exc:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        responses = repr(traceback.format_exception(exc_type, exc_value,
+                         exc_traceback))
 
     outq.put(responses)
 
