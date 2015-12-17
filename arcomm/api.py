@@ -137,7 +137,7 @@ def create_pool(hosts, creds, commands, **kwargs):
     for result in pool.results:
         print result
     """
-    pool = async.Pool(hosts, creds=creds, commands=commands, **kwargs)
+    pool = Pool(hosts, creds=creds, commands=commands, **kwargs)
     return pool
 
 def execute_bg(host, creds, commands, **kwargs):
