@@ -99,9 +99,13 @@ class Pool(object):
         self.start(**kwargs)
         self.join()
 
-    def start(self, delay=0, background=False):
+    def start(self, delay=0, background=False, sleep=0):
         """Run through host is the pool aysnchronously.  If sleep is > 0, start
         will wait for specified noumber of seconds before returning."""
+
+        # backward compatible
+        if sleep > 0:
+            delay = sleep
 
         try:
             for host in self._hosts:
