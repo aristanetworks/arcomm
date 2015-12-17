@@ -99,8 +99,7 @@ def test_batch():
         assert isinstance(res, arcomm.ResponseStore)
 
 def test_mixin_until():
-    with arcomm.Session() as sess:
-        sess.connect(HOST, creds=ADMIN_CREDS)
+    with arcomm.Session(HOST, creds=ADMIN_CREDS) as sess:
         sess.execute_until(['show clock'], condition=r'\:[0-5]0', timeout=30,
                            sleep=.1)
 
@@ -118,6 +117,19 @@ def test_tap():
 
     result = arcomm.tap(callback, arcomm.execute, 'veos', 'show version')
     assert hasattr(bob, 'was_here')
+
+def test_clone():
+
+    sess = arcomm.Session(HOST, creds=OPS_CREDS, protocol='ssh')
+    sess.connect()
+    cloned = sess.clone('vswitch1', protocol='eapi')
+    assert cloned.hostname != sess.hostname
+    assert cloned._conn != sess._conn
+    # for item in sess.__dict__.keys():
+    #     if item == '_conn':
+    #         assert getattr(sess, item) != getattr(cloned, item)
+    #     else:
+    #         assert getattr(sess, item) == getattr(cloned, item)
 
 def test_oldway_funcs():
 

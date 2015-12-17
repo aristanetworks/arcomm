@@ -7,7 +7,7 @@ import importlib
 import re
 import time
 from urlparse import urlparse
-from arcomm.util import session_defaults, to_list, parse_uri, merge_dicts
+from arcomm.util import session_defaults, to_list, parse_endpoint, deepmerge
 from arcomm.command import Command
 from arcomm.response import ResponseStore, Response
 from arcomm.protocols.ssh import Ssh
@@ -53,62 +53,71 @@ class BaseSession(object):
     Base Session
     """
 
-    def __init__(self):
-
-        #
-        self.authorized = False
+    def __init__(self, endpoint, creds=None, protocol=None, **kwargs):
 
         # connection object returned by the protocol adapter
-        self.conn = None
+        self._conn = None
 
-        # # Credentials tuple or object to pass to adapter
-        self.creds = DEFAULT_CREDS
+        # true if session is authorized (enabled)
+        self.authorized = False
 
-        # host to connect to
-        self.hostname = DEFAULT_HOST
+        #
+        self.options = kwargs
+
+        endpoint = parse_endpoint(endpoint)
+
+        #
+        self.hostname = endpoint['hostname']
+
+        # Credentials tuple or object to pass to adapter
+        if creds:
+            creds = self._handle_creds(creds)
+        else:
+            creds = endpoint.get('creds') or DEFAULT_CREDS
+
+        #
+        self.creds = creds
 
         # Protocol adapter to load
-        self.protocol = DEFAULT_PROTOCOL
+        if not protocol:
+            protocol = endpoint.get('protocol') or DEFAULT_PROTOCOL
 
-        # timeout in seconds
-        self.options = {}
+        if '+' in protocol:
+            protocol, transport = protocol.split('+', 1)
+            self.options['transport'] = transport
+
+        self.protocol = protocol
 
     def __enter__(self):
+        """
+        """
+        self.connect()
         return self
 
     def __exit__(self, *args):
+        """
+        """
+
         self.close()
 
-    def connect(self, uri, **kwargs):
+    def __repr__(self):
+        return str(self.__dict__)
+
+    def _handle_creds(self, creds):
+        """
+        """
+        if isinstance(creds, (tuple, list)):
+            creds = BasicCreds(*creds)
+        return creds
+
+    def connect(self): #, uri, **kwargs):
         """Connect to the remote host"""
 
-        options = merge_dicts(parse_uri(uri), kwargs)
-
-        self.hostname = options.pop('hostname', None) or self.hostname
-
-        protocol = options.pop('protocol', None) or self.protocol
-        transport = None
-        if '+' in protocol:
-            protocol, transport = self.protocol.split('+', 1)
-
-        options['transport'] = options.get('transport') or transport
-        self.protocol = protocol
-
-        self.creds = options.pop('creds', None) or DEFAULT_CREDS
-        port = options.get('port')
-
-        if port:
-            options['port'] = port
-
-        options['timeout'] = options.get('timeout') or DEFAULT_TIMEOUT
-
-        self.options = options
-
-        self.conn = _load_protocol_adapter(protocol)()
-        self.conn.connect(self.hostname, self.creds, **self.options)
+        self._conn = _load_protocol_adapter(self.protocol)()
+        self._conn.connect(self.hostname, self.creds, **self.options)
 
     def authorize(self, password='', username=None):
-        self.conn.authorize(password, username)
+        self._conn.authorize(password, username)
         self.authorized = (password, username)
 
     enable = authorize
@@ -121,7 +130,7 @@ class BaseSession(object):
         commands = _to_commands(commands)
 
         try:
-            responses = self.conn.send(commands, **kwargs)
+            responses = self._conn.send(commands, **kwargs)
 
             for item in zip(commands, responses):
 
@@ -139,24 +148,32 @@ class BaseSession(object):
 
         return store
 
-    def clone(self, uri=None, **kwargs):
-        cloned = self.__class__()
+    # endpoint, creds=None, protocol=None, options={}
+    def clone(self, hostname=None, creds=None, protocol=None, **kwargs):
+        """
+        """
 
-        if not uri:
-            uri = self.hostname
+        if not hostname:
+            hostname = self.hostname
 
-        kwargs = merge_dicts(self.options, parse_uri(uri), kwargs)
-        cloned.connect(uri, **kwargs)
-        if self.authorized:
-            cloned.authorize(*self.authorized)
+        if creds:
+            creds = self._handle_creds(creds)
+        else:
+            creds = self.creds
 
+        if not protocol:
+            protocol = self.protocol
+
+        options = deepmerge(kwargs, self.options)
+        cloned = Session(hostname, creds, protocol, **options)
+        cloned.connect()
         return cloned
 
     def close(self):
-        if hasattr(self.conn, 'close'):
-            self.conn.close()
+        if hasattr(self._conn, 'close'):
+            self._conn.close()
 
-        self.conn = None
+        self._conn = None
 
 class UntilMixin(object):
 
@@ -194,5 +211,5 @@ class UntilMixin(object):
 class Session(UntilMixin, BaseSession):
     pass
 
-def session():
-    return Session()
+def session(*args, **kwargs):
+    return Session(*args, **kwargs)
