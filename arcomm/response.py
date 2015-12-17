@@ -113,4 +113,4 @@ class ResponseStore(object):
         self._store = list()
 
     def splitlines(self):
-        return self.__str__.splitlines()
+        return self.__str__().splitlines()
