@@ -36,8 +36,6 @@ def _load_protocol_adapter(name):
     """Load protocol module from name"""
 
     if __name__ == '__main__':
-        raise ValueError('Failed load protocol adapters when this module ' +
-                         'is run directly')
 
     package, _ = __name__.split('.', 1)
     path = '.'.join((package, 'protocols', name))
