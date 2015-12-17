@@ -94,8 +94,8 @@ def test_background(protocol):
     for res in proc.results:
         assert isinstance(res, arcomm.ResponseStore)
 
-def test_batch():
-    for res in arcomm.batch([HOST, HOST], ['show version']):
+def test_batch(protocol):
+    for res in arcomm.batch([HOST, HOST], ['show version'], protocol=protocol):
         assert isinstance(res, arcomm.ResponseStore)
 
 def test_mixin_until():
