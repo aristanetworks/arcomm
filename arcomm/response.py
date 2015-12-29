@@ -3,12 +3,13 @@
 
 import json
 import re
-from arcomm.util import to_list, indentblock
 
-_status = (
-    ('ok',),
-    ('failed',)
-)
+from arcomm.util import to_list
+
+# _status = {
+#     0: ('ok',),
+#     1: ('failed',)
+# }
 
 class Response(object):
     """Store a single response"""
