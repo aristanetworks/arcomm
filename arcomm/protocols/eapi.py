@@ -9,15 +9,16 @@ import abc
 import json
 import requests
 import warnings
+
 from arcomm.exceptions import AuthenticationFailed, ExecuteFailed
+from arcomm.protocols.protocol import BaseProtocol
+from arcomm.command import Command
+
 # try:
 #     import paramiko
 # except ImportError:
 #     pass
-
-from arcomm.protocols.protocol import BaseProtocol
 #from arcomm.protocols._ssh_forward import
-from arcomm.command import Command
 
 class BaseTransport(object):
     __metaclass__  = abc.ABCMeta
