@@ -85,12 +85,6 @@ def authorized(connection):
 def clone(connection, endpoint=None, creds=None, protocol=None, timeout=None,
           **kwargs):
 
-    if creds:
-        kwargs['creds'] = creds
-
-    if protocol:
-        kwargs['protocol'] = protocol
-
     if timeout:
         kwargs['timeout'] = timeout
 
