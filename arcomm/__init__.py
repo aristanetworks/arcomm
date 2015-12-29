@@ -22,6 +22,7 @@ from .async import Pool, IterQueue
 #from .cli import Cli
 from .credentials import Creds, BasicCreds
 from .session import session, Session
+from .protocols import BaseProtocol
 from .response import ResponseStore, Response
 from .exceptions import (
     ConnectFailed, AuthenticationFailed, AuthorizationFailed, ExecuteFailed
