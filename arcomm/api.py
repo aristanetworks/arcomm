@@ -44,7 +44,7 @@ def execute(endpoint, commands, **kwargs):
             username, password = ('', authorize)
         sess.authorize(password, username)
 
-    response = sess.execute(commands,  **kwargs)
+    response = sess.send(commands,  **kwargs)
 
     return response
 
@@ -102,7 +102,7 @@ def configure(connection, commands, *args, **kwargs):
     commands = to_list(commands)
     commands.insert(0, "configure")
     commands.append("end")
-    return connection.execute(commands, **kwargs)
+    return connection.send(commands, **kwargs)
 
 def connect_with_password(host, username, password="", **kwargs):
     """Use a username and password to connect to host"""
