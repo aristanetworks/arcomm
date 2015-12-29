@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
 """Base module for protocol adapters"""
 
+import abc
+
 class BaseProtocol(object):
+    __metaclass__  = abc.ABCMeta
 
+    @abc.abstractmethod
     def close(self):
-        raise NotImplementedError()
+        pass
 
-    def connect(self, host, creds, options):
-        raise NotImplementedError()
+    @abc.abstractmethod
+    def connect(self, host, creds, **kwargs):
+        pass
 
-    def send(self, command):
-        raise NotImplementedError()
+    @abc.abstractmethod
+    def send(self, commands, **kwargs):
+        pass
 
-    def authorize(self, creds=('', '')):
-        raise NotImplementedError()
+    @abc.abstractmethod
+    def authorize(self, password, username):
+        pass
