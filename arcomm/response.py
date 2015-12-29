@@ -13,28 +13,20 @@ from arcomm.util import to_list
 
 class Response(object):
     """Store a single response"""
-    def __init__(self, command, output, error=None):
-        self._command = command
-        self._output = output
-        self._error = error
+    def __init__(self, command, output, errored=False):
+        self.command = command
+        self.output = output
+        self.errored = errored
 
-    @property
-    def command(self):
-        """Returns the command used to generate the response"""
-        return self._command
-
-    @property
-    def output(self):
-        """data returned from the command"""
-        return self._output
-
-    @property
-    def error(self):
-        return self._error
-
-    @property
-    def errors(self):
-        return to_list(self.error)
+    # @property
+    # def command(self):
+    #     """Returns the command used to generate the response"""
+    #     return self._command
+    #
+    # @property
+    # def output(self):
+    #     """data returned from the command"""
+    #     return self._output
 
     def __contains__(self, item):
         return item in self._output
