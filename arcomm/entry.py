@@ -54,7 +54,7 @@ def main():
 
     arg("--protocol", help=("Set the protocol. By default 'eapi' is used. "
                             "Note: eapi and eapi+http are the same"),
-        choices=["eapi", "eapi+http", "eapi+https", "ssh"])
+        choices=["eapi", "eapi+http", "eapi+https", "mock", "ssh"])
 
     arg("--encoding", default="text", choices=["json", "text"],
         help="Control output formatting")
