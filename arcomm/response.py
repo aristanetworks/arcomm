@@ -87,6 +87,10 @@ class ResponseStore(object):
         """adds a response item to the list"""
         if not isinstance(item, Response):
             item = Response(*item)
+
+        if item.errored:
+            self.status = 'failed'
+
         self._store.append(item)
 
     def filter(self, value=""):
