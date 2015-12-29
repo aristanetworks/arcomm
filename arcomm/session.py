@@ -88,6 +88,8 @@ class BaseSession(object):
 
         self.protocol = protocol
 
+        self._protocol_adapter = _load_protocol_adapter(protocol)
+
     def __enter__(self):
         """
         """
@@ -113,7 +115,7 @@ class BaseSession(object):
     def connect(self): #, uri, **kwargs):
         """Connect to the remote host"""
 
-        self._conn = _load_protocol_adapter(self.protocol)()
+        self._conn = self._protocol_adapter()
         self._conn.connect(self.hostname, self.creds, **self.options)
 
     def authorize(self, password='', username=None):
