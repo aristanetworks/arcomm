@@ -5,6 +5,7 @@ try:
 except ImportError:
     pass
 
+import abc
 import json
 import requests
 import warnings
@@ -19,6 +20,7 @@ from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
 
 class BaseTransport(object):
+    __metaclass__  = abc.ABCMeta
 
     def payload(self, commands, encoding, timestamps=False):
         """generate the request data"""
@@ -39,11 +41,13 @@ class BaseTransport(object):
             'id': id
         }
 
+    @abc.abstractmethod
     def connect(self, host, creds, port):
-        raise NotImplementedError
+        pass
 
-    def send(self, commands):
-        raise NotImplementedError
+    @abc.abstractmethod
+    def send(self, commands, encoding, timestamps):
+        pass
 
 class HttpTransport(BaseTransport):
 
