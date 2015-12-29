@@ -78,10 +78,10 @@ class BaseSession(object):
         #
         self.creds = creds
 
-        # Protocol adapter to load
         if not protocol:
             protocol = endpoint.get('protocol') or DEFAULT_PROTOCOL
 
+        # setup protocol and transport
         if '+' in protocol:
             protocol, transport = protocol.split('+', 1)
             self.options['transport'] = transport
@@ -122,7 +122,7 @@ class BaseSession(object):
 
     enable = authorize
 
-    def execute(self, commands, **kwargs):
+    def send(self, commands, **kwargs):
         """send commands"""
 
         store = ResponseStore(host=self.hostname)
@@ -133,11 +133,6 @@ class BaseSession(object):
             responses = self._conn.send(commands, **kwargs)
 
             for item in zip(commands, responses):
-
-                if not hasattr(item, '__iter__') or len(item) > 2:
-                    raise TypeError('response must be an iterable containing ' +
-                                    'two items: (output, errors)')
-
                 command, response = item
                 store.append(Response(command.cmd, response))
 
@@ -147,6 +142,8 @@ class BaseSession(object):
             store.status = 'failed'
 
         return store
+
+    execute = send
 
     # endpoint, creds=None, protocol=None, options={}
     def clone(self, hostname=None, creds=None, protocol=None, **kwargs):
@@ -165,6 +162,7 @@ class BaseSession(object):
             protocol = self.protocol
 
         options = deepmerge(kwargs, self.options)
+
         cloned = Session(hostname, creds, protocol, **options)
         cloned.connect()
         return cloned
@@ -182,8 +180,6 @@ class UntilMixin(object):
         (in seconds) is exceeded. If 'exclude' is set this function will return
         only if the string is _not_ present"""
 
-        #pylint: disable=too-many-arguments
-
         timeout = kwargs.pop('timeout', None) or 30
         sleep = kwargs.pop('sleep', None) or 1
         exclude = kwargs.pop('exclude', False)
@@ -194,6 +190,7 @@ class UntilMixin(object):
 
         while (check_time - timeout) < start_time:
             response = self.execute(commands, **kwargs)
+
             match = re.search(re.compile(condition), str(response))
             if exclude:
                 if not match:
