@@ -141,6 +141,7 @@ class BaseSession(object):
             store.status = 'ok'
 
         except ExecuteFailed as exc:
+            store.append(Response(exc.command, exc.message))
             store.status = 'failed'
 
         return store
