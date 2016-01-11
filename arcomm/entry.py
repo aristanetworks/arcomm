@@ -39,9 +39,6 @@ def to_yaml(response):
             print '  - command: {}'.format(r.command)
             print '    output: |'
             print indentblock(r.output, spaces=6)
-            if r.error:
-                print '    errors: |'
-                print indentblock(r.error, spaces=6)
 
 def main():
     from argparse import ArgumentParser
@@ -148,7 +145,7 @@ def main():
         script = template.render(replacements)
         script = script.splitlines()
 
-    for res in arcomm.batch(args.endpoints, script, **options):
+    for res in arcomm.batch(endpoints, script, **options):
         print '---'
         if options['encoding'] == 'json':
             to_json(res)
