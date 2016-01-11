@@ -4,7 +4,7 @@
 
 """
 
-__version__ = '2.0.0-beta.4'
+__version__ = '2.0.0-beta.5'
 __author__ = 'Jesse Mather'
 
 # pylint: disable=wildcard-import
