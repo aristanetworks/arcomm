@@ -116,7 +116,7 @@ def main():
     script = []
 
     if args.script:
-        with open(path, 'r') as fh:
+        with open(args.script, 'r') as fh:
             script = fh.read()
             script = script.splitlines()
     elif not sys.stdin.isatty():
