@@ -18,16 +18,6 @@ class Response(object):
         self.output = output
         self.errored = errored
 
-    # @property
-    # def command(self):
-    #     """Returns the command used to generate the response"""
-    #     return self._command
-    #
-    # @property
-    # def output(self):
-    #     """data returned from the command"""
-    #     return self._output
-
     def __contains__(self, item):
         return item in self._output
 
@@ -35,16 +25,13 @@ class Response(object):
         """return the data from the response as a string"""
         return str(self._output)
 
-    # def to_dict(self):
-    #     return {"command": str(self.command), "output": self.output, "errors": self.errors}
-
 class ResponseStore(object):
     """List-like object for storing responses"""
 
     def __init__(self, host, **kwargs):
 
         #
-        self._store = list()
+        self._store = []
 
         #
         self.host = host
@@ -62,7 +49,7 @@ class ResponseStore(object):
         return self._store[item]
 
     def __str__(self):
-        #host = self._keywords.get('host', 'eos')
+
         str_ = ""
         for response in self._store:
             str_ += "{}#{}\n{}\n".format(self.host, str(response.command).strip(),
