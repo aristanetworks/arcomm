@@ -16,6 +16,7 @@ from arcomm.session import Session
 from arcomm.exceptions import ExecuteFailed, ConnectFailed, \
                               AuthenticationFailed, AuthorizationFailed
 from arcomm.util import to_list
+from arcomm.response import ResponseStore, Response
 # logger = multiprocessing.log_to_stderr()
 # logger.setLevel(logging.INFO)
 
@@ -45,8 +46,13 @@ def _worker(host, commands, outq, **kwargs):
             AuthenticationFailed,
             AuthorizationFailed) as exc:
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        responses = repr(traceback.format_exception(exc_type, exc_value,
+        repr_ = "\n".join(traceback.format_exception(exc_type, exc_value,
                          exc_traceback))
+
+        # if we get kicked out of the session... we have to make our own
+        # response object... :(
+        responses = ResponseStore(host, **kwargs)
+        responses.append(Response('_authentication', repr_, True))
 
     outq.put(responses)
 
