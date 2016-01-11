@@ -30,15 +30,15 @@ def to_yaml(response):
 
     print 'host: {}'.format(host)
     print 'status: {}'.format(status)
-    if status == 'failed':
-        print 'failed: |'
-        print indentblock(str(response), spaces=2)
-    else:
-        print 'commands:'
-        for r in response:
-            print '  - command: {}'.format(r.command)
-            print '    output: |'
-            print indentblock(r.output, spaces=6)
+    # if status == 'failed':
+    #     print 'failed: |'
+    #     print indentblock(str(response), spaces=2)
+    # else:
+    print 'commands:'
+    for r in response:
+        print '  - command: {}'.format(r.command)
+        print '    output: |'
+        print indentblock(r.output, spaces=6)
 
 def main():
     from argparse import ArgumentParser
