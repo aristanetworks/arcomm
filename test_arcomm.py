@@ -42,7 +42,7 @@ def test_entry():
     arcomm.ExecuteFailed
 
 def test_execute_ok(protocol):
-    response = arcomm.execute(HOST, ['show glock'], protocol=protocol)
+    response = arcomm.execute(HOST, ['show clock'], protocol=protocol)
 
 def test_execute_sess():
     conn = arcomm.connect(HOST, creds=ADMIN_CREDS)
@@ -150,3 +150,8 @@ def test_oldway_funcs():
                          timeout=11, sleep=.1)
 
     arcomm.close(conn)
+
+
+def test_response_slice():
+    response = arcomm.execute(HOST, ['show version'], protocol=protocol)
+    response[1:1:1]

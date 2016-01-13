@@ -21,9 +21,12 @@ class Response(object):
     def __contains__(self, item):
         return item in self._output
 
+    def __getitem__(self, sl):
+        return str(self.output)[sl]
+
     def __str__(self):
         """return the data from the response as a string"""
-        return str(self._output)
+        return str(self.output)
 
 class ResponseStore(object):
     """List-like object for storing responses"""
