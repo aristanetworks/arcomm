@@ -5,6 +5,7 @@ import json
 import re
 
 from arcomm.util import to_list
+from arcomm.exceptions import ExecuteFailed
 
 # _status = {
 #     0: ('ok',),
@@ -91,6 +92,9 @@ class ResponseStore(object):
                 filtered.append(response)
         return filtered
 
+    def errored(self):
+        return [response for response in self if response.errored]
+
     def last(self):
         """returns the last response item"""
         return self._store[-1]
@@ -101,3 +105,8 @@ class ResponseStore(object):
 
     def splitlines(self):
         return self.__str__().splitlines()
+
+    def raise_for_error(self):
+        first_error = self.errored()[0]
+        if first_error:
+            raise ExecuteFailed(first_error)

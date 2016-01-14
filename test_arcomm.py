@@ -21,7 +21,7 @@ HOST = os.environ.get('ARCOMM_HOST', 'veos')
 
 arcomm.env.ARCOMM_DEFAULT_PROTOCOL = 'mock'
 
-@pytest.fixture(scope='module') #, params=['eapi+http', 'ssh'])
+@pytest.fixture(scope='module', autouse=True) #, params=['eapi+http', 'ssh'])
 def protocol(request):
     return arcomm.env.ARCOMM_DEFAULT_PROTOCOL #request.param
 
@@ -151,7 +151,12 @@ def test_oldway_funcs():
 
     arcomm.close(conn)
 
-
-def test_response_slice():
+def test_response_slice(protocol):
     response = arcomm.execute(HOST, ['show version'], protocol=protocol)
-    response[1:1:1]
+    response[0][0:5]
+    response[0][0:5:2]
+
+def test_raise_for_error(protocol):
+    response = arcomm.execute(HOST, ['show bogus'], protocol=protocol)
+    with pytest.raises(arcomm.ExecuteFailed):
+        response.raise_for_error()
