@@ -7,6 +7,7 @@
 __description__ = 'Library for connecting to Arista switches'
 __version__ = '2.0.0-beta.8'
 __author__ = 'Jesse Mather'
+__email__ = 'jmather@arista.com'
 __uri__ = 'https://github.com/aristanetworks/arcomm'
 __license__ = 'MIT Licesnse'
 # pylint: disable=wildcard-import
