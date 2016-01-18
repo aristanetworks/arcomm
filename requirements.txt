@@ -1,0 +1,6 @@
+PyYAML>=3.10
+paramiko>=1.10.1
+py>=1.4.20
+pycrypto>=2.6.1
+pytest>=2.5.1
+requests>=2.2.1

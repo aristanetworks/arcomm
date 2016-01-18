@@ -7,9 +7,13 @@ utility
 Installation
 ------------
 
+.. code-block:: bash
+
     pip install git+https://github.com/aristanetworks/arcomm.git
 
 or
+
+.. code-block:: bash
 
     git clone git@github.com:aristanetworks/arcomm.git
     cd arcomm
@@ -21,6 +25,8 @@ Note: Jinja2 is required for templating
 
 Console Usage
 -------------
+
+.. code-block:: bash
 
     $ arcomm -h
     usage: arcomm [-h] [-v] [--protocol PROTOCOL] [--encoding {json,text}]
@@ -62,6 +68,9 @@ Console Usage
 Console Example
 ---------------
 
+
+.. code-block:: python
+
     $ arcomm veos
     Enter commands (one per line).
     Enter '.' alone to send or 'Crtl-C' to quit.
@@ -74,8 +83,8 @@ Console Example
     - command: show version
     output: |
       Arista vEOS
-      Hardware version:    
-      Serial number:       
+      Hardware version:
+      Serial number:
       System MAC address:  0800.2776.48c5
 
       Software image version: 4.15.2F
@@ -89,7 +98,10 @@ Console Example
 
     ...
 
-**or pipe in the commands...**
+or pipe in the commands...
+
+
+.. code-block:: python
 
     $ echo "show version" | arcomm veos
     ---
@@ -99,8 +111,8 @@ Console Example
     - command: show version
     output: |
       Arista vEOS
-      Hardware version:    
-      Serial number:       
+      Hardware version:
+      Serial number:
       System MAC address:  0800.2776.48c5
 
       Software image version: 4.15.2F
@@ -114,7 +126,9 @@ Console Example
 
     ...
 
-**even multiple hosts in parallel...**
+even multiple hosts in parallel...
+
+.. code-block:: bash
 
     $ echo "show clock" | arcomm vswitch1 vswitch2
     ---
@@ -140,7 +154,9 @@ Console Example
 Multiple Switch Upgrade w/ Script Example
 ------------------------------------------
 
-**Contents of upgrade script file:**
+Contents of upgrade script file:
+
+.. code-block:: bash
 
     $ cat sw-upgrade.script
     ! script will stop here if file is not found.
@@ -152,6 +168,8 @@ Multiple Switch Upgrade w/ Script Example
     show boot-config
 
 Command-line w/ --variables argument:
+
+.. code-block:: bash
 
     $ cat scaffolding/sw-upgrade.script | arcomm veos --variables='{"image": "vEOS-4.15.2F.swi"}'
     ---
@@ -193,58 +211,48 @@ Command-line w/ --variables argument:
 API Usage
 ---------
 
-```
-$ ipython
-Python 2.7.6 (default, Mar 22 2014, 22:59:38)
-Type "copyright", "credits" or "license" for more information.
+.. code-block:: python
 
-IPython 4.0.0 -- An enhanced Interactive Python.
-?         -> Introduction and overview of IPython's features.
-%quickref -> Quick reference.
-help      -> Python's own help system.
-object?   -> Details about 'object', use 'object??' for extra details.
+    In [1]: import arcomm
 
-In [1]: import arcomm
+    In [2]: conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),
+        protocol='eapi+http')
 
-In [2]: conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),
-    protocol='eapi+http')
+    In [3]: responses = conn.execute(['show clock', 'show version'])
 
-In [3]: responses = conn.execute(['show clock', 'show version'])
+    In [4]: for resp in responses:
+    ...:     resp.output
+    ...:
+    Mon Nov 16 04:49:41 2015
+    Timezone: UTC
+    Clock source: local
 
-In [4]: for resp in responses:
-...:     resp.output
-...:     
-Mon Nov 16 04:49:41 2015
-Timezone: UTC
-Clock source: local
+    Arista vEOS
+    Hardware version:
+    Serial number:
+    System MAC address:  0800.2776.48c5
 
-Arista vEOS
-Hardware version:    
-Serial number:       
-System MAC address:  0800.2776.48c5
+    Software image version: 4.15.2F
+    Architecture:           i386
+    Internal build version: 4.15.2F-2663444.4152F
+    Internal build ID:      0ebbad93-563f-4920-8ecb-731057802b9c
 
-Software image version: 4.15.2F
-Architecture:           i386
-Internal build version: 4.15.2F-2663444.4152F
-Internal build ID:      0ebbad93-563f-4920-8ecb-731057802b9c
+    Uptime:                 23 hours and 17 minutes
+    Total memory:           1897596 kB
+    Free memory:            121844 kB
 
-Uptime:                 23 hours and 17 minutes
-Total memory:           1897596 kB
-Free memory:            121844 kB
+    In [5]:
+    In [6]: responses = conn.execute(['show version'], encoding='json')
 
-In [5]:
-In [6]: responses = conn.execute(['show version'], encoding='json')
+    In [7]: for resp in responses:
+    ...:     resp.output
+    ...:
+    {u'memTotal': 1897596, u'version': u'4.15.2F',
+    u'internalVersion': u'4.15.2F-2663444.4152F', u'serialNumber': u'',
+    u'systemMacAddress': u'08:00:27:76:48:c5',
+    u'bootupTimestamp': 1447565515.19, u'memFree': 121952,
+    u'modelName': u'vEOS', u'architecture': u'i386',
+    u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',
+    u'hardwareRevision': u''}
 
-In [7]: for resp in responses:
-...:     resp.output
-...:     
-{u'memTotal': 1897596, u'version': u'4.15.2F',
-u'internalVersion': u'4.15.2F-2663444.4152F', u'serialNumber': u'',
-u'systemMacAddress': u'08:00:27:76:48:c5',
-u'bootupTimestamp': 1447565515.19, u'memFree': 121952,
-u'modelName': u'vEOS', u'architecture': u'i386',
-u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',
-u'hardwareRevision': u''}
-
-In [8]:
-```
+    In [8]:
