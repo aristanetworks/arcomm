@@ -10,7 +10,6 @@ from urlparse import urlparse
 from arcomm.util import session_defaults, to_list, parse_endpoint, deepmerge
 from arcomm.command import Command
 from arcomm.response import ResponseStore, Response
-from arcomm.protocols.ssh import Ssh
 from arcomm.credentials import BasicCreds
 from arcomm.exceptions import ExecuteFailed
 
