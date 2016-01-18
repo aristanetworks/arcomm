@@ -4,9 +4,11 @@
 
 """
 
-__version__ = '2.0.0-beta.7'
+__description__ = 'Library for connecting to Arista switches'
+__version__ = '2.0.0-beta.8'
 __author__ = 'Jesse Mather'
-
+__uri__ = 'https://github.com/aristanetworks/arcomm'
+__license = 'MIT Licesnse'
 # pylint: disable=wildcard-import
 from . import util
 from .api import background, batch, configure, connect, execute, tap
