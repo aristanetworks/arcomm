@@ -59,22 +59,22 @@ from setuptools import setup, find_packages
 
 ###################################################################
 
-NAME = "arcomm"
-PACKAGES = find_packages(
-META_PATH = os.path.join(NAME, "__init__.py")
-KEYWORDS = ["arista", "eapi", "ssh"]
+NAME = 'arcomm'
+PACKAGES = find_packages()
+META_PATH = os.path.join(NAME, '__init__.py')
+KEYWORDS = ['arista', 'eapi', 'ssh']
 CLASSIFIERS = [
-    "Development Status :: 3 - Alpha",
-    "Environment :: Console",
-    "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 2.7",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Testing",
-    "Topic :: Terminals"
+    'Development Status :: 3 - Alpha',
+    'Environment :: Console',
+    'Intended Audience :: Information Technology',
+    'License :: OSI Approved :: MIT License',
+    'Natural Language :: English',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Software Development :: Testing',
+    'Topic :: Terminals'
 ]
 INSTALL_REQUIRES = ['requests']
 
