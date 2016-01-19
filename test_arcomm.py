@@ -2,8 +2,6 @@
 import arcomm
 import pytest
 import os
-#import mock
-import requests
 
 """
 """
