@@ -2,7 +2,7 @@
 import arcomm
 import pytest
 import os
-import mock
+#import mock
 import requests
 
 """
@@ -69,11 +69,11 @@ def test_authorize(protocol):
     response = arcomm.execute(HOST, ['show running-config'], creds=OPS_CREDS,
         authorize=ENABLE_SECRET, protocol=protocol)
 
-def test_execute_eapi_unconverted_command():
-
-    response = arcomm.execute(HOST, ['show version'], encoding='json',
-                              protocol='eapi+http')
-    assert response.status == 'failed'
+# def test_execute_eapi_unconverted_command():
+#
+#     response = arcomm.execute(HOST, ['show clock'], encoding='json',
+#                               protocol='eapi+http')
+#     assert response.status == 'failed'
 
 def test_response_store_access():
     responses = arcomm.execute(HOST, ['show version'])
