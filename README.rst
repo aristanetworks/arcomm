@@ -21,6 +21,8 @@ or
 
 Note: Jinja2 is required for templating
 
+.. code-block:: bash
+
     pip install jinja2
 
 Console Usage
