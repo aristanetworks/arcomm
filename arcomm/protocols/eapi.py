@@ -135,7 +135,7 @@ class Eapi(BaseProtocol):
 
         try:
             # test the connection
-            self.send([Command('')])
+            self.send([Command('show version')])
         except ExecuteFailed as exc:
             if '401 Client Error' in exc.message:
                 raise AuthenticationFailed(exc.message)
