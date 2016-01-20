@@ -9,7 +9,7 @@ Installation
 
 .. code-block:: bash
 
-    pip install git+https://github.com/aristanetworks/arcomm.git
+    pip install -U arcomm
 
 or
 
