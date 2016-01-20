@@ -10,7 +10,7 @@ import json
 import requests
 import warnings
 
-from arcomm.exceptions import AuthenticationFailed, ExecuteFailed
+from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
 
@@ -139,6 +139,8 @@ class Eapi(BaseProtocol):
         except ExecuteFailed as exc:
             if '401 Client Error' in exc.message:
                 raise AuthenticationFailed(exc.message)
+            else:
+                raise ConnectFailed(exc.message)
 
     def send(self, commands, **kwargs):
 
