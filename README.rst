@@ -69,7 +69,7 @@ Console Example
 ---------------
 
 
-.. code-block:: python
+.. code-block:: bash
 
     $ arcomm veos
     Enter commands (one per line).
@@ -101,7 +101,7 @@ Console Example
 or pipe in the commands...
 
 
-.. code-block:: python
+.. code-block:: bash
 
     $ echo "show version" | arcomm veos
     ---
