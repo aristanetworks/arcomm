@@ -76,6 +76,7 @@ class ResponseStore(object):
 
     def append(self, item):
         """adds a response item to the list"""
+
         if not isinstance(item, Response):
             item = Response(*item)
 
