@@ -17,7 +17,7 @@ def connect(endpoint, creds=None, protocol=None, **kwargs):
     :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
     :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
-    Usage::
+    Usage:
         >>> import arcomm
         >>> conn = arcomm.connect('ssh://veos', creds=BasicCreds('admin', ''))
     """
