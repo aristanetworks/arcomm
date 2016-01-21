@@ -60,6 +60,9 @@ class ResponseStore(object):
                                        response.output)
         return str_
 
+    def __repr__(self):
+        return '<{} [{}]>'.format(self.__class__.__name__, self.status)
+
     def __contains__(self, item):
         """allow string searches on all responses"""
         return item in self.__str__()
