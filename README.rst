@@ -1,5 +1,5 @@
-ArComm
-======
+ArComm: Remote Control for Aristas
+==================================
 
 .. image:: https://img.shields.io/pypi/v/arcomm.svg
     :target: https://pypi.python.org/pypi/arcomm
@@ -12,9 +12,8 @@ utility
 
 .. code-block:: python
 
-    import arcomm
-    conn = arcomm.connect('eapi://admin@vswitch1')
-    print conn.execute('show clock')
+    >>> conn = arcomm.connect('eapi://admin@vswitch1')
+    >>> print conn.execute('show clock')
     vswitch1#show clock
     Thu Jan 21 12:22:40 2016
     Timezone: UTC
