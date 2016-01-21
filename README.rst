@@ -11,13 +11,14 @@ Enable communications with Arista switches using a simple API or command line
 utility
 
 .. code-block:: python
-    >>> conn = arcomm.connect('eapi://admin@vswitch1')
-    >>> print conn.execute('show clock')
+
+    import arcomm
+    conn = arcomm.connect('eapi://admin@vswitch1')
+    print conn.execute('show clock')
     vswitch1#show clock
     Thu Jan 21 12:22:40 2016
     Timezone: UTC
     Clock source: NTP server (unspecified)
-
 
 Features
 --------
