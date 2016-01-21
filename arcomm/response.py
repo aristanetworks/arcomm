@@ -41,7 +41,7 @@ class ResponseStore(object):
         self.host = host
 
         #
-        self.status = None
+        self.status = 'ok'
 
         #
         self._keywords = kwargs
