@@ -11,6 +11,16 @@ from arcomm.async import Pool
 from arcomm.credentials import BasicCreds
 
 def connect(endpoint, creds=None, protocol=None, **kwargs):
+    """Construct a :class:`Session <Session>` and make the connection
+
+    :param endpoint: remote host or URI to connect to
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+
+    Usage::
+        >>> import arcomm
+        >>> conn = arcomm.connect('ssh://veos', creds=BasicCreds('admin', ''))
+    """
 
     sess = Session(endpoint, creds, protocol, **kwargs)
     sess.connect()
@@ -18,7 +28,18 @@ def connect(endpoint, creds=None, protocol=None, **kwargs):
     return sess
 
 def configure(endpoint, commands,  **kwargs):
+    """Make configuration changes to the switch
 
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+
+    Usage:
+        >>> import arcomm
+        >>> arcomm.configure('eapi://veos', ['interface Ethernet1', 'no shutdown'])
+        <ResponseStore [ok]>
+    """
     commands = to_list(commands)
     commands.insert(0, "configure")
     commands.append("end")
@@ -26,7 +47,18 @@ def configure(endpoint, commands,  **kwargs):
     execute(endpoint, commands,  **kwargs)
 
 def execute(endpoint, commands, **kwargs):
+    """Send exec commands
 
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+
+    Usage:
+        >>> import arcomm
+        >>> arcomm.configure('eapi://veos', ['show version'])
+        <ResponseStore [ok]>
+    """
     authorize = kwargs.pop('authorize', None)
 
     # allow an existing session to be used

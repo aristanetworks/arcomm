@@ -1,8 +1,32 @@
 ArComm
 ======
 
+.. image:: https://img.shields.io/pypi/v/arcomm.svg
+    :target: https://pypi.python.org/pypi/arcomm
+
+.. image:: https://img.shields.io/pypi/dm/arcomm.svg
+    :target: https://pypi.python.org/pypi/arcomm
+
 Enable communications with Arista switches using a simple API or command line
 utility
+
+.. code-block:: python
+    >>> conn = arcomm.connect('eapi://admin@vswitch1')
+    >>> print conn.execute('show clock')
+    vswitch1#show clock
+    Thu Jan 21 12:22:40 2016
+    Timezone: UTC
+    Clock source: NTP server (unspecified)
+
+
+Features
+--------
+
+- Factory defaults: works with new switches (mgmt IP required...)
+- Switching between protocols
+- Multi-processing for batch and background operations
+- Command line utility
+- JSON encoding w/ eapi
 
 Installation
 ------------
@@ -173,7 +197,8 @@ Command-line w/ --variables argument:
 
 .. code-block:: bash
 
-    $ cat scaffolding/sw-upgrade.script | arcomm veos --variables='{"image": "vEOS-4.15.2F.swi"}'
+    $ cat scaffolding/sw-upgrade.script | arcomm veos \
+        --variables='{"image": "vEOS-4.15.2F.swi"}'
     ---
     host: veos
     status: ok
@@ -215,16 +240,16 @@ API Usage
 
 .. code-block:: python
 
-    In [1]: import arcomm
+    >>> import arcomm
 
-    In [2]: conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),
+    >>> conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),
         protocol='eapi+http')
 
-    In [3]: responses = conn.execute(['show clock', 'show version'])
+    >>> responses = conn.execute(['show clock', 'show version'])
 
-    In [4]: for resp in responses:
-    ...:     resp.output
-    ...:
+    >>> for resp in responses:
+    ...     resp.output
+    ...
     Mon Nov 16 04:49:41 2015
     Timezone: UTC
     Clock source: local
@@ -243,12 +268,10 @@ API Usage
     Total memory:           1897596 kB
     Free memory:            121844 kB
 
-    In [5]:
-    In [6]: responses = conn.execute(['show version'], encoding='json')
-
-    In [7]: for resp in responses:
-    ...:     resp.output
-    ...:
+    >>> responses = conn.execute(['show version'], encoding='json')
+    >>> for resp in responses:
+    ...     resp.output
+    ...
     {u'memTotal': 1897596, u'version': u'4.15.2F',
     u'internalVersion': u'4.15.2F-2663444.4152F', u'serialNumber': u'',
     u'systemMacAddress': u'08:00:27:76:48:c5',
@@ -256,5 +279,3 @@ API Usage
     u'modelName': u'vEOS', u'architecture': u'i386',
     u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',
     u'hardwareRevision': u''}
-
-    In [8]:
