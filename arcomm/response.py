@@ -108,6 +108,6 @@ class ResponseStore(object):
         return self.__str__().splitlines()
 
     def raise_for_error(self):
-        first_error = self.errored()[0]
-        if first_error:
-            raise ExecuteFailed(first_error)
+        errors = self.errored()
+        if errors:
+            raise ExecuteFailed(errors[0])
