@@ -137,8 +137,6 @@ class BaseSession(object):
                 command, response = item
                 store.append(Response(command.cmd, response))
 
-            store.status = 'ok'
-
         except ExecuteFailed as exc:
             store.append(Response(exc.command, exc.message, errored=True))
 
