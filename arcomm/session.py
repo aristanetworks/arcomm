@@ -123,27 +123,6 @@ class BaseSession(object):
 
     enable = authorize
 
-    def send(self, commands, **kwargs):
-        """send commands"""
-
-        store = ResponseStore(host=self.hostname)
-
-        commands = _to_commands(commands)
-
-        try:
-            responses = self._conn.send(commands, **kwargs)
-
-            for item in zip(commands, responses):
-                command, response = item
-                store.append(Response(command.cmd, response))
-
-        except ExecuteFailed as exc:
-            store.append(Response(exc.command, exc.message, errored=True))
-
-        return store
-
-    execute = send
-
     # endpoint, creds=None, protocol=None, options={}
     def clone(self, hostname=None, creds=None, protocol=None, **kwargs):
         """
@@ -171,6 +150,30 @@ class BaseSession(object):
             self._conn.close()
 
         self._conn = None
+
+    def send(self, commands, **kwargs):
+        """send commands"""
+
+        store = ResponseStore(host=self.hostname)
+
+        if 'callback' in kwargs:
+            store.subscribe(kwargs['callback'])
+
+        commands = _to_commands(commands)
+
+        try:
+            responses = self._conn.send(commands, **kwargs)
+
+            for item in zip(commands, responses):
+                command, response = item
+                store.append(Response(command.cmd, response))
+
+        except ExecuteFailed as exc:
+            store.append(Response(exc.command, exc.message, errored=True))
+
+        return store
+
+    execute = send
 
 class UntilMixin(object):
 
