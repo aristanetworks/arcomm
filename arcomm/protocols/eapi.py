@@ -14,6 +14,9 @@ from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
 
+
+requests.packages.urllib3.disable_warnings()
+
 # try:
 #     import paramiko
 # except ImportError:
@@ -78,7 +81,7 @@ class HttpTransport(BaseTransport):
 
         payload = self.payload(commands, encoding, timestamps)
         response = requests.post(self.endpoint, auth=creds,
-                                 headers=self.headers, data=json.dumps(payload))
+                                 headers=self.headers, data=json.dumps(payload), verify=False)
 
         response.raise_for_status()
         return response
