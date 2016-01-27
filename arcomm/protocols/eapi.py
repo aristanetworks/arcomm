@@ -14,14 +14,14 @@ from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
 
-
-requests.packages.urllib3.disable_warnings()
-
 # try:
 #     import paramiko
 # except ImportError:
 #     pass
 #from arcomm.protocols._ssh_forward import
+
+#requests.packages.urllib3.disable_warnings()
+warnings.simplefilter("ignore")
 
 class BaseTransport(object):
     __metaclass__  = abc.ABCMeta
