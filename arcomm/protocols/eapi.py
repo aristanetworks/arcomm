@@ -92,11 +92,10 @@ class HttpsTransport(HttpTransport):
         super(HttpsTransport, self).__init__()
         self.scheme = 'https'
 
-class UnixTransport(BaseTransport):
-
-    def __init__(self):
-        super(UnixTransport, self).__init__()
-        self.scheme = 'http+unix'
+# class UnixTransport(BaseTransport):
+#     def __init__(self):
+#         super(UnixTransport, self).__init__()
+#         self.scheme = 'http+unix'
 
 # class SshTransport(HttpTransport):
 #     pass
