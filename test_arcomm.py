@@ -158,3 +158,16 @@ def test_raise_for_error(protocol):
     response = arcomm.execute(HOST, ['show bogus'], protocol=protocol)
     with pytest.raises(arcomm.ExecuteFailed):
         response.raise_for_error()
+
+called_back = False
+def test_callback(protocol):
+
+    def _cb(response):
+        global called_back
+        assert isinstance(response, arcomm.response.Response)
+        called_back = True
+
+    response = arcomm.execute(HOST, ['show bogus'], protocol=protocol,
+                              callback=_cb)
+
+    assert called_back
