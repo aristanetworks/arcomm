@@ -46,6 +46,8 @@ class ResponseStore(object):
         #
         self._keywords = kwargs
 
+        self._subscribers = []
+
     def __iter__(self):
         return iter(self._store)
 
@@ -67,6 +69,10 @@ class ResponseStore(object):
         """allow string searches on all responses"""
         return item in self.__str__()
 
+    def _notify(self, response):
+        for callback in self._subscribers:
+            callback(response)
+
     @property
     def responses(self):
         """returns the response data from each response"""
@@ -85,6 +91,8 @@ class ResponseStore(object):
 
         if item.errored:
             self.status = 'failed'
+
+        self._notify(item)
 
         self._store.append(item)
 
@@ -114,3 +122,6 @@ class ResponseStore(object):
         errors = self.errored()
         if errors:
             raise ExecuteFailed(errors[0])
+
+    def subscribe(self, callback):
+        self._subscribers.append(callback)
