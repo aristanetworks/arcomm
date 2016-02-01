@@ -18,9 +18,8 @@ from .api import background, batch, configure, connect, execute, tap
 #
 # old v1 funcs
 #
-from .api import get_credentials, authorize, authorized, clone, configure, \
-                 create_pool, execute_once, execute_pool, execute_bg, \
-                 execute_until, close
+from .api import (get_credentials, authorize, authorized, clone, create_pool,
+                  execute_once, execute_pool, execute_bg, execute_until, close)
 
 from .async import Pool, IterQueue
 #from .cli import Cli
