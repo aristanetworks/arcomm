@@ -78,6 +78,8 @@ def main():
     arg("--variables", help=("Replacements for template variables in script "
                              "file (must be JSON formatted)"))
 
+    arg("--no-verify", action="store_true")
+
     args = parser.parse_args()
 
     options = {}
@@ -110,6 +112,8 @@ def main():
 
     options['encoding'] = args.encoding
 
+    options['verify'] = not args.no_verify
+    
     script = []
 
     if args.script:
