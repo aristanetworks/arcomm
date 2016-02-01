@@ -5,7 +5,7 @@
 """
 
 __description__ = 'Library for connecting to Arista switches'
-__version__ = '2.0.5'
+__version__ = '2.0.6'
 __author__ = 'Jesse Mather'
 __email__ = 'jmather@arista.com'
 __uri__ = 'https://github.com/aristanetworks/arcomm'
