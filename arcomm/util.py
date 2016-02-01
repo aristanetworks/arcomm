@@ -101,44 +101,6 @@ def parse_endpoint(uri, use_defaults=True):
 
     return result
 
-def parse_uri(uri=None):
-    """handel uri or bare hostname"""
-
-    defaults = session_defaults()
-    protocol = defaults['protocol']
-    creds = defaults['creds']
-
-    hostname = defaults['host']
-    transport = None
-    path = ''
-    port = None
-
-    if uri:
-        match = re.match(r'^([\w\-]+)$', uri)
-        if match:
-            hostname = match.group(1)
-        else:
-            parsed = urlparse.urlparse(uri)
-            hostname = parsed.hostname or hostname
-            protocol = parsed.scheme or protocol
-            username = parsed.username or creds[0]
-            password = parsed.password or creds[1]
-            creds = (username, password)
-            port = parsed.port
-            path = parsed.path
-
-    if '+' in protocol:
-        protocol, transport = protocol.split('+', 1)
-
-    return {
-        'creds': BasicCreds(creds[0], creds[1]),
-        'hostname': hostname,
-        'path': path,
-        'port': port,
-        'protocol': protocol,
-        'transport': transport
-    }
-
 def load_endpoints(path):
     endpoints = []
 
