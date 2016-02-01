@@ -3,6 +3,8 @@ import arcomm
 import pytest
 import os
 
+from pprint import pprint
+
 """
 """
 
@@ -38,6 +40,13 @@ def test_entry():
     arcomm.AuthenticationFailed
     arcomm.AuthorizationFailed
     arcomm.ExecuteFailed
+
+def test_uri_parsing():
+    pe = arcomm.util.parse_endpoint
+    print
+    pprint(arcomm.Session('eapi://vswitch1'))
+    pprint(arcomm.Session('eapi+http://vswitch1'))
+    pprint(arcomm.Session('eapi+https://vswitch1'))
 
 def test_execute_ok(protocol):
     response = arcomm.execute(HOST, ['show clock'], protocol=protocol)
