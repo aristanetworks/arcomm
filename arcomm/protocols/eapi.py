@@ -45,9 +45,9 @@ class BaseTransport(object):
             'id': id
         }
 
-    @abc.abstractmethod
-    def connect(self, host, creds, port):
-        pass
+    # @abc.abstractmethod
+    # def connect(self, host, creds, port):
+    #     pass
 
     @abc.abstractmethod
     def send(self, commands, encoding, timestamps):
@@ -55,41 +55,40 @@ class BaseTransport(object):
 
 class HttpTransport(BaseTransport):
 
-    def __init__(self):
+    def __init__(self, host, creds=None, port=None, verify=True):
         self.scheme = 'http'
-        self.endpoint = None
-        self.creds = None
+        self.host = host
+        self.creds = creds
+        self.port = port
+        self.verify = verify
         self.headers = {'Content-Type': 'application/json'}
 
-    def get_endpoint(self, host, port=None):
-        endpoint = '{}://{}'.format(self.scheme, host)
+    def get_endpoint(self):
+        endpoint = '{}://{}'.format(self.scheme, self.host)
 
-        if port:
-            endpoint += ':{}'.format(port)
+        if self.port:
+            endpoint += ':{}'.format(self.port)
 
         endpoint += '/command-api'
 
         return endpoint
 
-    def connect(self, host, creds=None, port=None):
-        self.endpoint = self.get_endpoint(host, port)
-        self.creds = creds
-
     def send(self, commands, encoding='text', timestamps=False):
+        endpoint = self.get_endpoint()
 
         creds = self.creds.auth if hasattr(self.creds, 'auth') else None
 
         payload = self.payload(commands, encoding, timestamps)
-        response = requests.post(self.endpoint, auth=creds,
-                                 headers=self.headers, data=json.dumps(payload), verify=False)
+        response = requests.post(endpoint, auth=creds, headers=self.headers,
+                                 data=json.dumps(payload), verify=self.verify)
 
         response.raise_for_status()
         return response
 
 class HttpsTransport(HttpTransport):
 
-    def __init__(self):
-        super(HttpsTransport, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(HttpsTransport, self).__init__(*args, **kwargs)
         self.scheme = 'https'
 
 # class UnixTransport(BaseTransport):
@@ -119,8 +118,8 @@ class Eapi(BaseProtocol):
 
         self._transports = {
             'http': HttpTransport,
-            'https': HttpsTransport,
-            'unix': UnixTransport,
+            'https': HttpsTransport
+            #'unix': UnixTransport,
             #'ssh': SshTransport
         }
 
@@ -130,10 +129,14 @@ class Eapi(BaseProtocol):
     def connect(self, host, creds, **kwargs):
 
         transport = kwargs.get('transport', None) or 'http'
+
         port = kwargs.get('port')
 
-        self._conn = self._transports[transport]()
-        self._conn.connect(host, creds, port=port)
+        verify_ssl = kwargs.get('verify', False)
+
+        self._conn = self._transports[transport](host, creds, port=port,
+                                                 verify=verify_ssl)
+        #self._conn.connect()
 
         try:
             # test the connection
