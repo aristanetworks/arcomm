@@ -3,6 +3,7 @@
 
 import json
 import re
+import time
 
 from arcomm.util import to_list
 from arcomm.exceptions import ExecuteFailed
@@ -15,6 +16,7 @@ from arcomm.exceptions import ExecuteFailed
 class Response(object):
     """Store a single response"""
     def __init__(self, command, output, errored=False):
+        self.created_at = time.time()
         self.command = command
         self.output = output
         self.errored = errored
