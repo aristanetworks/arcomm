@@ -22,6 +22,9 @@ def connect(endpoint, creds=None, protocol=None, **kwargs):
         >>> conn = arcomm.connect('ssh://veos', creds=BasicCreds('admin', ''))
     """
 
+    if isinstance(creds, (tuple, list)):
+        creds = BasicCreds(*creds)
+
     sess = Session(endpoint, creds, protocol, **kwargs)
     sess.connect()
 
