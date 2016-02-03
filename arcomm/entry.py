@@ -47,38 +47,38 @@ def main():
 
     arg("endpoints", nargs="*")
 
-    arg("-v", "--version", action="store_true", help="Display version info")
+    arg("-v", "--version", action="store_true", help="display version info")
 
-    arg("--protocol", help=("Set the protocol. By default 'eapi' is used. "
-                            "Note: eapi and eapi+http are the same"),
-        choices=["eapi", "eapi+http", "eapi+https", "mock", "ssh"])
+    arg("--protocol", help=("set the protocol. By default 'eapi' is used."),
+        choices=["eapi", "eapi+https", "mock", "ssh"])
 
     arg("--encoding", default="text", choices=["json", "text"],
-        help="Control output formatting")
+        help="control output formatting")
 
-    arg("-u", "--username", help="Specifies the username on the switch")
+    arg("-u", "--username", help="specifies the username on the switch")
 
-    arg("-p", "--password", default="", help="Specifies users password.")
+    arg("-p", "--password", default="", help="specifies users password")
 
     arg("--authorize", action="store_true")
 
     arg("-a", "--authorize-password", default=None,
-        help=("Use if a password is needed for elevated prvilges"))
+        help=("use if a password is needed for elevated prvilges"))
 
     arg("-t", "--timeout", type=int, default=30,
-        help=("Change the timeout from the default of 30 seconds"))
+        help=("change the timeout from the default of 30 seconds"))
 
-    arg("--hosts-file", help="Path to file containing list of hosts")
+    arg("--hosts-file", help="path to file containing list of hosts")
 
-    arg("--script", help=("Path to a script file containing commands to "
+    arg("--script", help=("path to a script file containing commands to "
                           "execute. template variables will be processed if "
                           "Jinja2 is installed and `--variables` is also "
                           "supplied on the command line"))
 
-    arg("--variables", help=("Replacements for template variables in script "
+    arg("--variables", help=("replacements for template variables in script "
                              "file (must be JSON formatted)"))
 
-    arg("--no-verify", action="store_true")
+    arg("--no-verify", action="store_true", help=("when using eAPI over HTTPS, "
+                                                  "don't verify certificate"))
 
     args = parser.parse_args()
 
@@ -113,7 +113,7 @@ def main():
     options['encoding'] = args.encoding
 
     options['verify'] = not args.no_verify
-    
+
     script = []
 
     if args.script:
