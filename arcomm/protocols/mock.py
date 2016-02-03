@@ -11,7 +11,7 @@ from arcomm.command import Command
 
 import platform
 import datetime
-
+import time
 def _show_version(authorized):
     return " ".join(platform.uname())
 
@@ -27,8 +27,11 @@ def _show_restricted(authorized):
 
     return 'Drink more Ovaltine'
 
-def _end():
+def _end(authorized):
     pass
+
+def _sleep(authorized):
+    time.sleep(5)
 
 COMMANDS = {
 # 'show': {
@@ -39,7 +42,8 @@ COMMANDS = {
     'show clock': _show_clock,
     'show restricted': _show_restricted,
     'configure': _configure,
-    'end': _end
+    'end': _end,
+    'sleep': _sleep
 }
 
 class Mock(BaseProtocol):
