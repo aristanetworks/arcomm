@@ -23,6 +23,7 @@ from .api import (get_credentials, authorize, authorized, clone, create_pool,
 
 from .async import Pool, IterQueue
 #from .cli import Cli
+from .command import Command
 from .credentials import Creds, BasicCreds
 from .session import session, Session
 from .protocols import BaseProtocol
