@@ -6,40 +6,6 @@ import re
 import sys
 import arcomm
 
-def indentblock(text, spaces=0):
-    """Indent multiple lines of text to the same level"""
-    text = text.splitlines() if hasattr(text, 'splitlines') else []
-    return '\n'.join([' ' * spaces + line for line in text])
-
-def to_json(response):
-    host = response.host
-    status = response.status
-
-    commands = []
-    result = {"host": response.host, "status": response.status}
-
-    for res in response:
-        commands.append({"command": res.command, "output": res.output})
-    result['commands'] = commands
-
-    print json.dumps(result, indent=4, separators=(',', ': '))
-
-def to_yaml(response):
-    host = response.host
-    status = response.status
-
-    print 'host: {}'.format(host)
-    print 'status: {}'.format(status)
-    # if status == 'failed':
-    #     print 'failed: |'
-    #     print indentblock(str(response), spaces=2)
-    # else:
-    print 'commands:'
-    for r in response:
-        print '  - command: {}'.format(r.command)
-        print '    output: |'
-        print indentblock(r.output, spaces=6)
-
 def main():
     from argparse import ArgumentParser
     parser = ArgumentParser(prog="arcomm")
@@ -152,9 +118,9 @@ def main():
     for res in arcomm.batch(endpoints, script, **options):
         print '---'
         if options['encoding'] == 'json':
-            to_json(res)
+            print res.to_json()
         else:
-            to_yaml(res)
+            print res.to_yaml()
     print '...'
 
 
