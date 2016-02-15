@@ -4,32 +4,32 @@
 import json
 import re
 import time
-
-from arcomm.util import to_list
+import yaml
+from arcomm.util import to_list, indentblock
 from arcomm.exceptions import ExecuteFailed
-
-# _status = {
-#     0: ('ok',),
-#     1: ('failed',)
-# }
 
 class Response(object):
     """Store a single response"""
+
     def __init__(self, command, output, errored=False):
-        self.created_at = time.time()
+
         self.command = command
         self.output = output
         self.errored = errored
 
+        self.created_at = time.time()
+
     def __contains__(self, item):
         return item in self._output
 
-    def __getitem__(self, sl):
-        return str(self.output)[sl]
+    def __getitem__(self, slice_):
+        return str(self.output)[slice_]
 
     def __str__(self):
         """return the data from the response as a string"""
         return str(self.output)
+
+yaml.add_representer(Response, response_representer)
 
 class ResponseStore(object):
     """List-like object for storing responses"""
@@ -48,6 +48,7 @@ class ResponseStore(object):
         #
         self._keywords = kwargs
 
+        #
         self._subscribers = []
 
     def __iter__(self):
