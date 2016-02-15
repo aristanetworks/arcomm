@@ -21,7 +21,7 @@ from .api import background, batch, configure, connect, execute, tap
 from .api import (get_credentials, authorize, authorized, clone, create_pool,
                   execute_once, execute_pool, execute_bg, execute_until, close)
 
-from .async import Pool, IterQueue
+from .async import Pool
 #from .cli import Cli
 from .command import Command
 from .credentials import Creds, BasicCreds

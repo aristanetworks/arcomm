@@ -6,28 +6,22 @@
 import multiprocessing
 import time
 import signal
-import socket
 import sys
 import traceback
-import logging
 
-import arcomm
 from arcomm.session import Session
-from arcomm.exceptions import ExecuteFailed, ConnectFailed, \
-                              AuthenticationFailed, AuthorizationFailed
-from arcomm.util import to_list
+from arcomm.exceptions import (ExecuteFailed, ConnectFailed,
+                               AuthenticationFailed, AuthorizationFailed)
 from arcomm.response import ResponseStore, Response
-# logger = multiprocessing.log_to_stderr()
-# logger.setLevel(logging.INFO)
+from arcomm.util import to_list
 
-class QueueError(Exception):
-    """Queue has gone away or been deleted"""
 
-def _initialize_worker():
+
+def _prep_worker():
     """Tell workers to ignore interrupts"""
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def _worker(host, commands, outq, **kwargs):
+def _worker(host, commands, **kwargs):
     """Common worker func. Logs into remote host, executes commands and puts
     the results in the queue. Called from `Pool` and `Background`"""
 
@@ -52,48 +46,49 @@ def _worker(host, commands, outq, **kwargs):
         # if we get kicked out of the session... we have to make our own
         # response object... :(
         responses = ResponseStore(host, **kwargs)
-        responses.append(Response('_authentication', repr_, True))
+        responses.append(Response('_authentication', repr_, errored=True))
 
-    outq.put(responses)
+    return responses
 
 class Pool(object):
     """
-
     """
 
-    def __init__(self, hosts, commands, **kwargs):
+    def __init__(self, endpoints, commands, size=10, delay=0, **kwargs):
 
         #
-        self._hosts = to_list(hosts)
+        self._endpoints = to_list(endpoints)
 
         #
         self._commands = commands
 
         #
-        self._pool_size = kwargs.pop('pool_size', None) or 10
-
+        self._pool_size = size
 
         #
-        self.background = kwargs.pop('background', False)
+        #self.background = kwargs.pop('background', False)
+        self._delay = delay
 
         #
         self._worker_kwargs = kwargs
 
         #
-        self._results = IterQueue()
-
-        #
-        #self._async_result = None
+        self._results = []
 
         # initialize pool
-        self._pool = multiprocessing.Pool(self._pool_size, _initialize_worker)
+        self._pool = multiprocessing.Pool(self._pool_size, _prep_worker)
 
     def __enter__(self):
         self.start()
         return self
 
     def __exit__(self, type, value, traceback):
-        self.join()
+        #self.join()
+        pass
+
+    def __iter__(self):
+        for item in self._results:
+            yield item.get()
 
     @property
     def results(self):
@@ -101,80 +96,28 @@ class Pool(object):
         return self._results
 
     def run(self, **kwargs):
-        """Run commands on the hosts"""
+        """Run commands on the hosts, blocks until are tasks are completed"""
         self.start(**kwargs)
         self.join()
 
-    def start(self, delay=0, background=False, sleep=0):
+    def start(self): #, delay=0, background=False, sleep=0):
         """Run through host is the pool aysnchronously.  If sleep is > 0, start
         will wait for specified noumber of seconds before returning."""
 
-        # backward compatible
-        if sleep > 0:
-            delay = sleep
+        for host in self._endpoints:
+            args = [host, self._commands]
+            result = self._pool.apply_async(_worker, args, self._worker_kwargs)
+            self._results.append(result)
 
-        try:
-            for host in self._hosts:
-                args = [host, self._commands, self.results]
-                res = self._pool.apply_async(_worker, args, self._worker_kwargs)
+        self._pool.close()
 
-                if not (self.background or background):
-                    res.get(2**32)
-
-            self._pool.close()
-
-        except KeyboardInterrupt:
-
-            self.kill()
-            raise
-
-        time.sleep(delay)
+        time.sleep(self._delay)
 
     def join(self):
-        """Bring the pool into the current process (Blocking) and wait for jobs
-        to complte.  Also, close the results queue before returning"""
         self._pool.join()
-        self._finish()
+        pass
 
     def kill(self):
         """Terminate the pool and empty the queue"""
+
         self._pool.terminate()
-        self._results = IterQueue()
-        self._finish()
-
-    def _finish(self):
-        self._results.close()
-
-class IterQueue(object):
-    """Simple queue that can be passed between processes"""
-    _sentinel = "__STOP__"
-
-    def __init__(self):
-        # pylint: disable=E1101
-        _manager = multiprocessing.Manager()
-        self._queue = _manager.Queue()
-        self._closed = False
-
-    @property
-    def closed(self):
-        """return True if queue is closed"""
-        return self._closed
-
-    def __iter__(self):
-        return iter(self._queue.get, self._sentinel)
-
-    def close(self):
-        """Shut down the queue and append the sentinel"""
-        try:
-            self._queue.put(self._sentinel)
-        except socket.error as err:
-            raise QueueError("{}".format(err))
-        self._closed = True
-
-    def get(self, block=True, timeout=None):
-        """Pop an item from the queue"""
-        return self._queue.get(block, timeout)
-
-    def put(self, item, block=True, timeout=None):
-        """Append and item onto the queue"""
-        return self._queue.put(item, block, timeout)

@@ -3,6 +3,7 @@
 """High level functional API for using arcomm modules"""
 
 import re
+import sys
 import time
 
 from arcomm.session import BaseSession, Session
@@ -71,7 +72,6 @@ def execute(endpoint, commands, **kwargs):
     else:
         sess = endpoint
 
-
     if authorize:
         if hasattr(authorize, '__iter__'):
             username, password = authorize[0], authorize[1]
@@ -84,21 +84,20 @@ def execute(endpoint, commands, **kwargs):
     return response
 
 def batch(endpoints, commands, **kwargs):
-    endpoints = to_list(endpoints)
 
-    #pool_size = kwargs.pop('pool_size', None) or 10
-    delay = kwargs.pop('delay', None) or 0
 
-    pool = Pool(endpoints, commands, **kwargs)
-    pool.run(delay=delay)
 
-    for item in pool.results:
-        yield item
+    with Pool(endpoints, commands, **kwargs) as pool:
+        try:
+            for item in pool.results:
+                yield item.get()
+        except KeyboardInterrupt:
+            print 'Caught interrupt'
+            pool.kill()
+            raise
 
-def background(endpoint, commands, **kwargs):
-    pool = Pool([endpoint], commands, **kwargs)
-    pool.background = True
-    return pool
+def background(endpoints, commands, **kwargs):
+    return Pool(endpoints, commands, **kwargs)
 
 def tap(callback, func, *args, **kwargs):
     result = func(*args, **kwargs)
