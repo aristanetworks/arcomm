@@ -12,12 +12,16 @@ utility
 
 .. code-block:: python
 
-    >>> conn = arcomm.connect('eapi://admin@vswitch1')
-    >>> print conn.execute('show clock')
-    vswitch1#show clock
-    Thu Jan 21 12:22:40 2016
-    Timezone: UTC
-    Clock source: NTP server (unspecified)
+    >>> responses = arcomm.execute('eapi+https://admin@vswitch1', ['show clock', 'show version'])
+    >>> print responses.to_yaml()
+    host: vswitch1
+    status: ok
+    commands:
+      - command: show clock
+        output: |
+          Tue Feb  9 06:04:42 2016
+          Timezone: UTC
+          Clock source: local
 
 Features
 --------
