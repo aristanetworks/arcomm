@@ -76,12 +76,6 @@ def test_authorize(protocol):
     response = arcomm.execute(HOST, ['show running-config'], creds=OPS_CREDS,
         authorize=ENABLE_SECRET, protocol=protocol)
 
-# def test_execute_eapi_unconverted_command():
-#
-#     response = arcomm.execute(HOST, ['show clock'], encoding='json',
-#                               protocol='eapi+http')
-#     assert response.status == 'failed'
-
 def test_response_store_access():
     responses = arcomm.execute(HOST, ['show version'])
     assert hasattr(responses, '__iter__'), "response must be an iterable"
@@ -95,18 +89,22 @@ def test_response_store_access():
 def test_background(protocol):
 
     did_stuff = False
-    with arcomm.background(HOST, ['show running-config all'],
+    with arcomm.background(HOST, ['show version'],
                            protocol=protocol) as proc:
         did_stuff = True
 
     assert did_stuff
 
-    for res in proc.results:
+    for res in proc:
+        print "RESULT:", res
         assert isinstance(res, arcomm.ResponseStore)
 
 def test_batch(protocol):
-    for res in arcomm.batch([HOST, HOST], ['show version'], protocol=protocol):
+    pool = arcomm.batch([HOST, HOST], ['show version', 'sleep'], protocol=protocol)
+
+    for res in pool:
         assert isinstance(res, arcomm.ResponseStore)
+
 
 def test_mixin_until():
     with arcomm.Session(HOST, creds=ADMIN_CREDS) as sess:
