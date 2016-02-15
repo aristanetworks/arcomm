@@ -48,8 +48,9 @@ def deepmerge(source, destination):
     return destination
 
 def indentblock(text, spaces=0):
-    text = text.splitlines() if hasattr(text, "splitlines") else []
-    return "\n".join([" " * spaces + line for line in text])
+    """Indent multiple lines of text to the same level"""
+    text = text.splitlines() if hasattr(text, 'splitlines') else []
+    return '\n'.join([' ' * spaces + line for line in text])
 
 def to_commands(commands):
     """Converts a command or list of commands to a list of Command objects"""
