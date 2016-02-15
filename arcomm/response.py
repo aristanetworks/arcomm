@@ -64,6 +64,29 @@ class ResponseStore(object):
                                        response.output)
         return str_
 
+    def to_yaml(self):
+        yaml = ['host: {}'.format(self.host)]
+        yaml.append('status: {}'.format(self.status))
+        yaml.append('commands:')
+
+        for r in self:
+            yaml.append('  - command: {}'.format(r.command))
+            yaml.append('    output: |')
+            yaml.append(indentblock(r.output, spaces=6))
+
+        return '\n'.join(yaml)
+
+    def to_json(self):
+        result = {'host': self.host, 'status': self.status, 'commands': []}
+
+        for response in self:
+            result['commands'].append({
+                'command': response.command,
+                'output': response.output
+            })
+
+        return json.dumps(result, indent=4, separators=(',', ': '))
+
     def __repr__(self):
         return '<{} [{}]>'.format(self.__class__.__name__, self.status)
 
