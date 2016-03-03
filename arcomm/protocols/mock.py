@@ -12,6 +12,7 @@ from arcomm.command import Command
 import platform
 import datetime
 import time
+
 def _show_version(authorized):
     return " ".join(platform.uname())
 

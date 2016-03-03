@@ -35,12 +35,11 @@ def configure(endpoint, commands,  **kwargs):
     """Make configuration changes to the switch
 
     :param endpoint: remote host or URI to connect to
-    :param commands: command or commands to send
+    :param commands: configuration mode command or commands to send
     :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
     :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
     Usage:
-        >>> import arcomm
         >>> arcomm.configure('eapi://veos', ['interface Ethernet1', 'no shutdown'])
         <ResponseStore [ok]>
     """
@@ -59,7 +58,6 @@ def execute(endpoint, commands, **kwargs):
     :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
     Usage:
-        >>> import arcomm
         >>> arcomm.configure('eapi://veos', ['show version'])
         <ResponseStore [ok]>
     """
@@ -84,9 +82,18 @@ def execute(endpoint, commands, **kwargs):
     return response
 
 def batch(endpoints, commands, **kwargs):
+    """Send commands to multiple endpoints
 
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
-
+    Usage:
+        >>> pool = arcomm.batch(['veos1', 'veos2'], ['show version'])
+        >>> for res in pool:
+        ...     print res.to_yaml()
+    """
     with Pool(endpoints, commands, **kwargs) as pool:
         try:
             for item in pool.results:
@@ -97,9 +104,39 @@ def batch(endpoints, commands, **kwargs):
             raise
 
 def background(endpoints, commands, **kwargs):
+    """Similar to batch, but the :class:`Pool` opject is returned before
+    reading the results, non-blocking
+
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+    :return: :class:`Pool <Pool>` object
+    :rtype: arcomm.async.Pool
+
+    Usage:
+        >>> with arcomm.background('veos1', 'show version') as bg:
+        ...     # do other things...
+        ...
+        >>> for res in bg:
+        ...     print res.to_yaml()
+        ...
+        host: vswitch1
+        status: ok
+        commands:
+          - command: show version
+            output: |
+              Arista vEOS
+              Hardware version:
+              Serial number:
+              System MAC address:  0800.2776.48c5
+              [ ...output omitted... ]
+    """
     return Pool(endpoints, commands, **kwargs)
 
 def tap(callback, func, *args, **kwargs):
+    """
+    """
     result = func(*args, **kwargs)
     callback(result)
     return result

@@ -45,10 +45,6 @@ class BaseTransport(object):
             'id': id
         }
 
-    # @abc.abstractmethod
-    # def connect(self, host, creds, port):
-    #     pass
-
     @abc.abstractmethod
     def send(self, commands, encoding, timestamps):
         pass
