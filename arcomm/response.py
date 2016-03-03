@@ -29,7 +29,7 @@ class Response(object):
         """return the data from the response as a string"""
         return str(self.output)
 
-yaml.add_representer(Response, response_representer)
+# yaml.add_representer(Response, response_representer)
 
 class ResponseStore(object):
     """List-like object for storing responses"""
