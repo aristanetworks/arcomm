@@ -115,7 +115,6 @@ class Pool(object):
 
     def join(self):
         self._pool.join()
-        pass
 
     def kill(self):
         """Terminate the pool and empty the queue"""
