@@ -96,7 +96,7 @@ def test_background(protocol):
     assert did_stuff
 
     for res in proc:
-        print "RESULT:", res
+        #print "RESULT:", res
         assert isinstance(res, arcomm.ResponseStore)
 
 def test_batch(protocol):

@@ -15,8 +15,6 @@ from arcomm.exceptions import (ExecuteFailed, ConnectFailed,
 from arcomm.response import ResponseStore, Response
 from arcomm.util import to_list
 
-
-
 def _prep_worker():
     """Tell workers to ignore interrupts"""
     signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -66,7 +64,6 @@ class Pool(object):
         self._pool_size = size
 
         #
-        #self.background = kwargs.pop('background', False)
         self._delay = delay
 
         #
