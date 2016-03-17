@@ -24,10 +24,13 @@ class Response(object):
         self.created_at = time.time()
 
     def __contains__(self, item):
-        return item in self._output
+        return item in str(self._output)
 
-    def __getitem__(self, slice_):
-        return str(self.output)[slice_]
+    def __getitem__(self, item):
+        if isinstance(item, slice) or isinstance(item, int):
+            return str(self.output)[item]
+        else:
+            return self.output[item]
 
     def __str__(self):
         """return the data from the response as a string"""
