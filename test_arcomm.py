@@ -178,3 +178,10 @@ def test_callback(protocol):
                               callback=_cb)
 
     assert called_back
+
+# def test_json_response():
+#     response = arcomm.execute(HOST, 'show version', protocol='eapi+http', encoding='json')
+#
+#     response[0]['version']
+#     response[0][0:-1]
+#     response[0][10:30]

@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
 """Store responses"""
 
 import json
@@ -28,8 +32,6 @@ class Response(object):
     def __str__(self):
         """return the data from the response as a string"""
         return str(self.output)
-
-# yaml.add_representer(Response, response_representer)
 
 class ResponseStore(object):
     """List-like object for storing responses"""

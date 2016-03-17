@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""
-"""
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
 
 import importlib
 import re
@@ -166,7 +166,10 @@ class BaseSession(object):
 
             for item in zip(commands, responses):
                 command, response = item
-                store.append(Response(command.cmd, response))
+
+                print "RESPONSE_TYPE:", type(response)
+
+                store.append((command.cmd, response))
 
         except ExecuteFailed as exc:
             store.append(Response(exc.command, exc.message, errored=True))

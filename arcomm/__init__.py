@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""
-
-"""
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
 
 import sys
 
@@ -29,7 +28,6 @@ from .api import background, batch, configure, connect, execute, tap
 from .api import (get_credentials, authorize, authorized, clone, create_pool,
                   execute_once, execute_pool, execute_bg, execute_until, close)
 from .async import Pool
-#from .cli import Cli
 from .command import Command
 from .credentials import Creds, BasicCreds
 from .session import session, Session
