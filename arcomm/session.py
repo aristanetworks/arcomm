@@ -167,8 +167,6 @@ class BaseSession(object):
             for item in zip(commands, responses):
                 command, response = item
 
-                print "RESPONSE_TYPE:", type(response)
-
                 store.append((command.cmd, response))
 
         except ExecuteFailed as exc:

@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty32"
-  config.vm.network "private_network", ip: "192.168.56.10",
-    virtualbox__intnet: "Management"
+  config.vm.network "public_network"
+  #config.vm.network "private_network", virtualbox__intnet: true
   config.vm.provision "shell", path: "bootstrap.sh"
 end
