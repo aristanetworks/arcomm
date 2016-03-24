@@ -43,7 +43,7 @@ or
 
 .. code-block:: bash
 
-    git clone git@github.com:aristanetworks/arcomm.git
+    git clone https://github.com/aristanetworks/arcomm.git
     cd arcomm
     python setup.py install
 
@@ -61,7 +61,7 @@ Development
 
 .. code-block:: bash
 
-    git clone git@github.com:aristanetworks/arcomm.git
+    git clone https://github.com/aristanetworks/arcomm.git
     cd arcomm
     vagrant up
     vagrant ssh
