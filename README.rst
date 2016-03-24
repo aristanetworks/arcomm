@@ -53,6 +53,19 @@ Note: Jinja2 is required for templating
 
     pip install jinja2
 
+
+Development
+-----------
+
+* Install Vagrant from http://www.vagrantup.com
+
+.. code-block:: bash
+
+    git clone git@github.com:aristanetworks/arcomm.git
+    cd arcomm
+    vagrant up
+    vagrant ssh
+
 Console Usage
 -------------
 
