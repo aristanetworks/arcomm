@@ -172,16 +172,40 @@ def test_callback(protocol):
     def _cb(response):
         global called_back
         assert isinstance(response, arcomm.response.Response)
-        called_back = True
+        called_back = 'test_callback'
 
     response = arcomm.execute(HOST, ['show bogus'], protocol=protocol,
                               callback=_cb)
 
-    assert called_back
+    assert called_back == 'test_callback'
 
-# def test_json_response():
-#     response = arcomm.execute(HOST, 'show version', protocol='eapi+http', encoding='json')
-#
-#     response[0]['version']
-#     response[0][0:-1]
-#     response[0][10:30]
+def test_global_subscriber(protocol):
+    import functools
+    def cb(response, key):
+        global called_back
+        called_back = 'test_response_monitor:' + str(key)
+
+    p1 = functools.partial(cb, key=1)
+    p2 = functools.partial(cb, key=2)
+    p3 = functools.partial(cb, key=3)
+    arcomm.subscribe(p3)
+    arcomm.subscribe(p1)
+    arcomm.subscribe(p1)
+    arcomm.subscribe(p2)
+
+    # unsub two funcs
+    arcomm.unsubscribe([p1, p2])
+    # bugus
+    arcomm.unsubscribe("sdfsdf")
+
+    arcomm.execute(HOST, ['show clock'], protocol=protocol)
+    assert called_back == 'test_response_monitor:3'
+
+def test_command(protocol):
+
+    cmd = arcomm.mkcmd('show version', prompt=r'password', answer='no')
+    print cmd.__dict__
+
+def test_credentials():
+    creds = arcomm.creds("admin", password="none")
+    print creds
