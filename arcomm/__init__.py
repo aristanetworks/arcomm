@@ -19,19 +19,23 @@ __uri__ = 'https://github.com/aristanetworks/arcomm'
 __license__ = 'MIT License'
 __copyright__ = '2016 Arista Networks, Inc.'
 
-from . import util
-from .api import background, batch, configure, connect, execute, tap
+from arcomm import util
+from arcomm.api import (background, batch, configure, connect, creds, execute,
+                        tap)
 
 #
 # old v1 funcs
 #
-from .api import (get_credentials, authorize, authorized, clone, create_pool,
-                  execute_once, execute_pool, execute_bg, execute_until, close)
-from .async import Pool
-from .command import Command
-from .credentials import Creds, BasicCreds
-from .session import session, Session
-from .protocols import BaseProtocol
-from .response import ResponseStore, Response
-from .exceptions import (ConnectFailed, AuthenticationFailed,
-                         AuthorizationFailed, ExecuteFailed)
+from arcomm.api import (authorize, authorized, clone, create_pool, execute_once,
+                        execute_pool, execute_bg, execute_until, close,
+                        get_credentials)
+
+from arcomm.async import Pool
+from arcomm.command import Command, commands_from_list, command_from_dict, mkcmd
+from arcomm.credentials import Creds, BasicCreds
+from arcomm.session import session, Session
+from arcomm.protocols import BaseProtocol
+from arcomm.response import (ResponseStore, Response, get_subscribers,
+                             subscribe, unsubscribe)
+from arcomm.exceptions import (ConnectFailed, AuthenticationFailed,
+                               AuthorizationFailed, ExecuteFailed)
