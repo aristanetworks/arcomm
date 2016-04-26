@@ -12,13 +12,92 @@ import time
 from arcomm.session import BaseSession, Session
 from arcomm.util import to_list
 from arcomm.async import Pool
-from arcomm.credentials import BasicCreds
+from arcomm.credentials import BasicCreds, mkcreds
+from arcomm.command import Command
+
+import warnings
+
+def background(endpoints, commands, **kwargs):
+    """Similar to batch, but the :class:`Pool` opject is returned before
+    reading the results, non-blocking
+
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication
+                             credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+    :return: :class:`Pool <Pool>` object
+    :rtype: arcomm.async.Pool
+
+    Usage:
+        >>> with arcomm.background('veos1', 'show version') as bg:
+        ...     # do other things...
+        ...
+        >>> for res in bg:
+        ...     print res.to_yaml()
+        ...
+        host: vswitch1
+        status: ok
+        commands:
+          - command: show version
+            output: |
+              Arista vEOS
+              Hardware version:
+              Serial number:
+              System MAC address:  0800.2776.48c5
+              [ ...output omitted... ]
+    """
+    return Pool(endpoints, commands, **kwargs)
+
+def batch(endpoints, commands, **kwargs):
+    """Send commands to multiple endpoints
+
+    :param endpoint: remote host or URI to connect to
+    :param commands: command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication
+                             credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+
+    Usage:
+        >>> pool = arcomm.batch(['veos1', 'veos2'], ['show version'])
+        >>> for res in pool:
+        ...     print res.to_yaml()
+    """
+    with Pool(endpoints, commands, **kwargs) as pool:
+        try:
+            for item in pool.results:
+                yield item.get()
+        except KeyboardInterrupt:
+            print 'Caught interrupt'
+            pool.kill()
+            raise
+
+def configure(endpoint, commands,  **kwargs):
+    """Make configuration changes to the switch
+
+    :param endpoint: remote host or URI to connect to
+    :param commands: configuration mode command or commands to send
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication
+                             credentials
+    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
+
+    Usage:
+        >>> arcomm.configure('eapi://veos',
+        ...                  ['interface Ethernet1', 'no shutdown'])
+        <ResponseStore [ok]>
+    """
+    commands = to_list(commands)
+    commands.insert(0, "configure")
+    commands.append("end")
+
+    execute(endpoint, commands,  **kwargs)
 
 def connect(endpoint, creds=None, protocol=None, **kwargs):
     """Construct a :class:`Session <Session>` and make the connection
 
     :param endpoint: remote host or URI to connect to
-    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication
+                             credentials
     :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
     Usage:
@@ -34,30 +113,21 @@ def connect(endpoint, creds=None, protocol=None, **kwargs):
 
     return sess
 
-def configure(endpoint, commands,  **kwargs):
-    """Make configuration changes to the switch
+def creds(username, password="", **kwargs):
+    """Return a Creds object. If username and password are not passed the user
+    will be prompted"""
 
-    :param endpoint: remote host or URI to connect to
-    :param commands: configuration mode command or commands to send
-    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
-    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
-
-    Usage:
-        >>> arcomm.configure('eapi://veos', ['interface Ethernet1', 'no shutdown'])
-        <ResponseStore [ok]>
-    """
-    commands = to_list(commands)
-    commands.insert(0, "configure")
-    commands.append("end")
-
-    execute(endpoint, commands,  **kwargs)
+    return mkcreds(username, password=password, **kwargs)
+# old name
+get_credentials = creds
 
 def execute(endpoint, commands, **kwargs):
     """Send exec commands
 
     :param endpoint: remote host or URI to connect to
     :param commands: command or commands to send
-    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
+    :param creds: (optional) :class:`Creds <Creds>` object with authentication
+                             credentials
     :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
 
     Usage:
@@ -84,62 +154,8 @@ def execute(endpoint, commands, **kwargs):
 
     return response
 
-def batch(endpoints, commands, **kwargs):
-    """Send commands to multiple endpoints
-
-    :param endpoint: remote host or URI to connect to
-    :param commands: command or commands to send
-    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
-    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
-
-    Usage:
-        >>> pool = arcomm.batch(['veos1', 'veos2'], ['show version'])
-        >>> for res in pool:
-        ...     print res.to_yaml()
-    """
-    with Pool(endpoints, commands, **kwargs) as pool:
-        try:
-            for item in pool.results:
-                yield item.get()
-        except KeyboardInterrupt:
-            print 'Caught interrupt'
-            pool.kill()
-            raise
-
-def background(endpoints, commands, **kwargs):
-    """Similar to batch, but the :class:`Pool` opject is returned before
-    reading the results, non-blocking
-
-    :param endpoint: remote host or URI to connect to
-    :param commands: command or commands to send
-    :param creds: (optional) :class:`Creds <Creds>` object with authentication credentials
-    :param protocol: (optional) Protocol name, e.g. 'ssh' or 'eapi'
-    :return: :class:`Pool <Pool>` object
-    :rtype: arcomm.async.Pool
-
-    Usage:
-        >>> with arcomm.background('veos1', 'show version') as bg:
-        ...     # do other things...
-        ...
-        >>> for res in bg:
-        ...     print res.to_yaml()
-        ...
-        host: vswitch1
-        status: ok
-        commands:
-          - command: show version
-            output: |
-              Arista vEOS
-              Hardware version:
-              Serial number:
-              System MAC address:  0800.2776.48c5
-              [ ...output omitted... ]
-    """
-    return Pool(endpoints, commands, **kwargs)
-
 def tap(callback, func, *args, **kwargs):
-    """
-    """
+    """???"""
     result = func(*args, **kwargs)
     callback(result)
     return result
@@ -205,18 +221,22 @@ def create_pool(hosts, creds, commands, **kwargs):
     for result in pool.results:
         print result
     """
+    warnings.warn("deprecated", DeprecationWarning)
     pool = Pool(hosts, creds=creds, commands=commands, **kwargs)
     return pool
 
 def execute_bg(host, creds, commands, **kwargs):
+    warnings.warn("deprecated", DeprecationWarning)
     kwargs['creds'] = creds
     return background(host, commands, **kwargs)
 
 def execute_once(host, creds, commands, **kwargs):
+    warnings.warn("deprecated", DeprecationWarning)
     kwargs['creds'] = creds
     return execute(host, commands, **kwargs)
 
 def execute_pool(hosts, creds, commands, **kwargs):
+    warnings.warn("deprecated", DeprecationWarning)
     kwargs['creds'] = creds
     return batch(hosts, commands, **kwargs)
 
@@ -224,11 +244,3 @@ def execute_until(connection, commands, condition, timeout=30, sleep=5,
                   exclude=False):
     return connection.execute_until(commands, condition, timeout=timeout,
                                     sleep=sleep, exclude=exclude)
-
-def get_credentials(username, password="", authorize_password=None,
-                    private_key=None):
-    """Return a Creds object. If username and password are not passed the user
-    will be prompted"""
-    return BasicCreds(username, password,
-                            authorize_password=authorize_password,
-                            private_key=private_key)
