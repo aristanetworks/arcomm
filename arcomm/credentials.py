@@ -10,6 +10,13 @@ passwords
 import collections
 import getpass
 
+def mkcreds(username, **kwargs):
+    return BasicCreds(username=username, **kwargs)
+
+# make a list of creds for sessions to try?
+def credentials_from_list(creds):
+    pass
+
 class BaseCreds(collections.Mapping):
     """Credentials class stores username, passwords, keys"""
     def __init__(self, **kwargs):
@@ -29,7 +36,7 @@ class BaseCreds(collections.Mapping):
 
 class BasicCreds(BaseCreds):
 
-    def __init__(self, username, password, **kwargs):
+    def __init__(self, username, password="", **kwargs):
         super(BasicCreds, self).__init__(username=username, password=password,
             **kwargs)
 
