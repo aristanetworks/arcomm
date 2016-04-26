@@ -8,7 +8,7 @@ import re
 import time
 from urlparse import urlparse
 from arcomm.util import session_defaults, to_list, parse_endpoint, deepmerge
-from arcomm.command import Command
+from arcomm.command import commands_from_list
 from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
 from arcomm.exceptions import ExecuteFailed
@@ -18,18 +18,6 @@ DEFAULT_TIMEOUT = DEFAULTS.get('timeout', 30)
 DEFAULT_PROTOCOL = DEFAULTS.get('protocol', 'eapi+http')
 DEFAULT_CREDS = DEFAULTS.get('creds')
 DEFAULT_HOST = DEFAULTS.get('host', 'localhost')
-
-def _to_commands(commands):
-    """Converts a command or list of commands to a list of Command objects"""
-    commands = to_list(commands)
-    _loc = []
-    for _cmd in commands:
-        if not isinstance(_cmd, Command):
-            if re.search("^(!|#)", _cmd) or re.search("^\s*$", _cmd):
-                continue
-            _cmd = Command(_cmd.strip())
-        _loc.append(_cmd)
-    return _loc
 
 def _load_protocol_adapter(name):
     """Load protocol module from name"""
@@ -159,7 +147,7 @@ class BaseSession(object):
         if 'callback' in kwargs:
             store.subscribe(kwargs['callback'])
 
-        commands = _to_commands(commands)
+        commands = commands_from_list(commands)
 
         try:
             responses = self._conn.send(commands, **kwargs)

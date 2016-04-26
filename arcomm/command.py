@@ -6,7 +6,26 @@
 """Command module.  stores command and any prompts or answers it may require"""
 
 import collections
-from .util import to_list
+import re
+from arcomm.util import to_list
+
+
+def mkcmd(command, prompt=None, answer=None):
+    return Command(command, prompt=prompt, answer=answer)
+
+command_from_dict = cmd = mkcmd
+
+def commands_from_list(commands):
+    """Converts a command or list of commands to a list of Command objects"""
+    commands = to_list(commands)
+    cmdlist = []
+    for cmd in commands:
+        if not isinstance(cmd, Command):
+            if re.search("^(!|#)", cmd) or re.search("^\s*$", cmd):
+                continue
+            cmd = Command(cmd.strip())
+        cmdlist.append(cmd)
+    return cmdlist
 
 class Command(collections.MutableMapping):
     """Object to store command and any prompts or answers it may require"""
