@@ -12,6 +12,24 @@ import yaml
 from arcomm.util import to_list, indentblock
 from arcomm.exceptions import ExecuteFailed
 
+_SUBSCRIBERS = []
+
+def subscribe(callback):
+    """Adds a global subscriber"""
+    if not hasattr(callback, '__call__'):
+        raise TypeError("callbeck must be callable")
+
+    _SUBSCRIBERS.append(callback)
+
+def unsubscribe(callback):
+    callback = to_list(callback)
+    global _SUBSCRIBERS
+    _SUBSCRIBERS = [cb for cb in _SUBSCRIBERS if cb not in callback]
+
+def get_subscribers():
+    """Get all global subs"""
+    return _SUBSCRIBERS
+
 class Response(object):
     """Store a single response"""
 
@@ -101,7 +119,10 @@ class ResponseStore(object):
         return item in self.__str__()
 
     def _notify(self, response):
-        for callback in self._subscribers:
+
+        subscribers = get_subscribers() + self._subscribers
+
+        for callback in subscribers:
             callback(response)
 
     @property
