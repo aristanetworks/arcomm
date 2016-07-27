@@ -53,8 +53,10 @@ class Ssh(BaseProtocol):
             # [admin@cs-spine-2a /]$
             # [admin@cs-spine-2a local]$
             # [admin@cs-spine-2a ~]$
+            re.compile(r"\[\w+\@[\w\-\.]+(?: [^\]])\] ?[>#\$] ?$"),
             # -bash-4.1#
-            re.compile(r"\[\w+\@[\w\-\.]+(?: [^\]])\] ?[>#\$] ?$")
+            # #
+            re.compile(r"[\r\n]\-?(?:bash)?(?:\-\d\.\d)? ?[>#\$] ?$")
         ]
 
         # possible error message patterns
@@ -169,7 +171,13 @@ class Ssh(BaseProtocol):
 
         # capture login banner and clear any login messages
         self._banner = self._send(Command(''))
-        self.send([Command('terminal length 0'), Command('terminal dont-ask')])
+
+        # don't die if these commands aren't available
+        try:
+            self.send([Command('terminal length 0'),
+                       Command('terminal dont-ask')])
+        except ExecuteFailed:
+            pass
 
     def send(self, commands, **kwargs):
         """Send a series of commands to the device"""
