@@ -72,6 +72,7 @@ class Ssh(BaseProtocol):
             re.compile(r"[^\r\n]\/bin\/(?:ba)?sh")
         ]
 
+        self._banner = None
         self._ssh = None
         self._channel = None
 
@@ -170,7 +171,7 @@ class Ssh(BaseProtocol):
         self._channel = channel
 
         # capture login banner and clear any login messages
-        self._banner = self._send(Command(''))
+        self._banner = self._send(Command('\r'))
 
         # don't die if these commands aren't available
         try:
