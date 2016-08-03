@@ -6,9 +6,10 @@
 """Base module for protocol adapters"""
 
 import abc
+from future.utils import with_metaclass
 
-class BaseProtocol(object):
-    __metaclass__  = abc.ABCMeta
+class BaseProtocol(with_metaclass(abc.ABCMeta, object)):
+    #__metaclass__  = abc.ABCMeta
 
     @abc.abstractmethod
     def close(self):
