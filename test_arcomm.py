@@ -43,7 +43,7 @@ def test_entry():
 
 def test_uri_parsing():
     pe = arcomm.util.parse_endpoint
-    print
+    print()
     pprint(arcomm.Session('eapi://vswitch1'))
     pprint(arcomm.Session('eapi+http://vswitch1'))
     pprint(arcomm.Session('eapi+https://vswitch1'))
