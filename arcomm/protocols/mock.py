@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
@@ -81,7 +80,7 @@ class Mock(BaseProtocol):
                 try:
                     results.append(COMMANDS[command.cmd](self._authorized))
                 except Exception as exc:
-                    raise ExecuteFailed('Command failed: {}'.format(exc.message))
+                    raise ExecuteFailed('Command failed: {}'.format(exc))
             else:
                 raise ExecuteFailed('Invalid command {}'.format(command.cmd),
                                     command)

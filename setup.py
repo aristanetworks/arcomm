@@ -30,7 +30,7 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Testing',
     'Topic :: Terminals'
 ]
-INSTALL_REQUIRES = ['requests']
+INSTALL_REQUIRES = ['pyyaml', 'requests', 'future']
 
 ###################################################################
 

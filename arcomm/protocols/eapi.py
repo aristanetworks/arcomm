@@ -142,10 +142,10 @@ class Eapi(BaseProtocol):
             # test the connection
             self.send([Command('show version')])
         except ExecuteFailed as exc:
-            if '401 Client Error' in exc.message:
-                raise AuthenticationFailed(exc.message)
+            if '401 Client Error' in str(exc):
+                raise AuthenticationFailed(str(exc))
             else:
-                raise ConnectFailed(exc.message)
+                raise ConnectFailed(str(exc))
 
     def send(self, commands, **kwargs):
 
@@ -160,9 +160,9 @@ class Eapi(BaseProtocol):
         try:
             response = self._conn.send(_format_commands(commands),
                                        encoding=encoding, timestamps=timestamps)
-        #     print "RESPONSE:", response
+
         except (requests.HTTPError, requests.ConnectionError) as exc:
-            raise ExecuteFailed(exc.message)
+            raise ExecuteFailed(str(exc))
 
         data = response.json()
 

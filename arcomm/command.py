@@ -4,7 +4,7 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 """Command module.  stores command and any prompts or answers it may require"""
-
+from past.builtins import str, basestring
 import collections
 import re
 from arcomm.util import to_list
@@ -35,6 +35,7 @@ class Command(collections.MutableMapping):
             prompt = cmd.get("prompt")
             answer = cmd.get("answer", cmd.get('input', ''))
             cmd = cmd.get("cmd", cmd.get('command'))
+        #print(type(cmd), isinstance(cmd, str))
         assert isinstance(cmd, basestring), "cmd must be a string"
 
         self._store = dict()

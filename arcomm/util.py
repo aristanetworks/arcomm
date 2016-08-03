@@ -14,6 +14,8 @@ except ImportError:
 import arcomm.env as env
 from arcomm.credentials import BasicCreds
 
+from future.utils import iteritems
+
 def to_list(data):
     """Creates a list containing the data as a single element or a new list
     from the original if it is already a list or a tuple"""
@@ -41,7 +43,7 @@ def merge_dicts(*args):
 dictmerge = merge_dicts
 
 def deepmerge(source, destination):
-    for key, value in source.iteritems():
+    for (key, value) in iteritems(source):
         if isinstance(value, dict):
             # get node or create one
             node = destination.setdefault(key, {})

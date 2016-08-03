@@ -5,6 +5,8 @@
 
 """High level functional API for using arcomm modules"""
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 import re
 import sys
 import time
@@ -34,7 +36,7 @@ def background(endpoints, commands, **kwargs):
         ...     # do other things...
         ...
         >>> for res in bg:
-        ...     print res.to_yaml()
+        ...     print(res.to_yaml())
         ...
         host: vswitch1
         status: ok
@@ -61,14 +63,14 @@ def batch(endpoints, commands, **kwargs):
     Usage:
         >>> pool = arcomm.batch(['veos1', 'veos2'], ['show version'])
         >>> for res in pool:
-        ...     print res.to_yaml()
+        ...     print(res.to_yaml())
     """
     with Pool(endpoints, commands, **kwargs) as pool:
         try:
             for item in pool.results:
                 yield item.get()
         except KeyboardInterrupt:
-            print 'Caught interrupt'
+            print('Caught interrupt')
             pool.kill()
             raise
 
@@ -219,7 +221,7 @@ def create_pool(hosts, creds, commands, **kwargs):
     # do other stuff...
     pool.join()
     for result in pool.results:
-        print result
+        print(result)
     """
     warnings.warn("deprecated", DeprecationWarning)
     pool = Pool(hosts, creds=creds, commands=commands, **kwargs)

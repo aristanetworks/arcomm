@@ -96,8 +96,8 @@ def main():
     else:
         isatty = sys.stdin.isatty()
         if isatty:
-            print "Enter commands (one per line)."
-            print "Enter '.' alone to send or 'Crtl-C' to quit."
+            print("Enter commands (one per line).")
+            print("Enter '.' alone to send or 'Crtl-C' to quit.")
             try:
                 while True:
                     line = raw_input('> ')
@@ -105,7 +105,7 @@ def main():
                         break
                     script.append(line)
             except (KeyboardInterrupt, SystemExit):
-                print "Commands aborted."
+                print("Commands aborted.")
                 sys.exit()
         else:
             for line in sys.stdin:
@@ -120,12 +120,12 @@ def main():
         script = script.splitlines()
 
     for res in arcomm.batch(endpoints, script, **options):
-        print '---'
+        print('---')
         if options['encoding'] == 'json':
-            print res.to_json()
+            print(res.to_json())
         else:
-            print res.to_yaml()
-    print '...'
+            print(res.to_yaml())
+    print('...')
 
 
 if __name__ == "__main__":

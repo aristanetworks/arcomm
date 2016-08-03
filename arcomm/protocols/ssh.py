@@ -5,10 +5,18 @@
 
 """SSH adapter module"""
 
+# from __future__ import (absolute_import, division, print_function,
+#                         unicode_literals)
+
 import json
 import re
 import socket
-from StringIO import StringIO
+import time
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.exceptions import ConnectFailed, ExecuteFailed, \
                               AuthenticationFailed,  AuthorizationFailed, \
@@ -86,7 +94,8 @@ class Ssh(BaseProtocol):
 
             if re.match(r'\x1b[^=]*=', line):
                 continue
-            cleaned.append(unicode(line))
+
+            cleaned.append(line)
 
         return '\n'.join(cleaned)
 
@@ -136,7 +145,7 @@ class Ssh(BaseProtocol):
         try:
             response = self._send(command)
         except ExecuteFailed as exc:
-            raise AuthorizationFailed(exc.message)
+            raise AuthorizationFailed(str(exc))
 
     def close(self):
         """close the session"""
@@ -158,7 +167,7 @@ class Ssh(BaseProtocol):
                          password=creds.password, timeout=timeout)
 
         except paramiko.AuthenticationException as exc:
-            raise AuthenticationFailed(exc.message)
+            raise AuthenticationFailed(str(exc))
         except socket.timeout as exc:
             raise ConnectFailed(str(exc))
         except IOError as exc:
@@ -200,17 +209,23 @@ class Ssh(BaseProtocol):
         errored_response = None
 
         self._channel.sendall(str(command) + '\r')
+        # wait for channel to be recv_ready (only seems to be a problem in py3)
+        while not self._channel.recv_ready():
+            #print("waiting for channel to be recv_ready...")
+            time.sleep(.01)
 
         while True:
             try:
-                response = self._channel.recv(1024)
+                response = self._channel.recv(1024).decode("utf-8")
             except socket.timeout:
                 message = "% Timed out while running: {}".format(command)
                 raise ExecuteFailed(message)
 
             buff.write(response)
-
-            buff.seek(buff.tell() - 150)
+            place = buff.tell() - 150
+            if place < 0:
+                place = 0
+            buff.seek(place)
             window = buff.read()
 
             if self._handle_errors(window):

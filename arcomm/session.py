@@ -6,12 +6,16 @@
 import importlib
 import re
 import time
-from urlparse import urlparse
 from arcomm.util import session_defaults, to_list, parse_endpoint, deepmerge
 from arcomm.command import commands_from_list
 from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
 from arcomm.exceptions import ExecuteFailed
+
+#from urlparse import urlparse
+from future.standard_library import install_aliases
+install_aliases()
+from urllib.parse import urlparse
 
 DEFAULTS = session_defaults()
 DEFAULT_TIMEOUT = DEFAULTS.get('timeout', 30)
@@ -158,7 +162,7 @@ class BaseSession(object):
                 store.append((command.cmd, response))
 
         except ExecuteFailed as exc:
-            store.append(Response(exc.command, exc.message, errored=True))
+            store.append(Response(exc.command, str(exc), errored=True))
 
         return store
 

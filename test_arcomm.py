@@ -204,8 +204,8 @@ def test_global_subscriber(protocol):
 def test_command(protocol):
 
     cmd = arcomm.mkcmd('show version', prompt=r'password', answer='no')
-    print cmd.__dict__
+    print(cmd.__dict__)
 
 def test_credentials():
     creds = arcomm.creds("admin", password="none")
-    print creds
+    print(creds)
