@@ -5,6 +5,10 @@
 
 """High level functional API for using arcomm modules"""
 
+__all__ = ['authorize', 'authorized', 'background', 'batch', 'clone', 'close',
+           'configure', 'connect',  'creds', 'execute', 'execute_until',
+           'get_credentials', 'tap']
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import re
@@ -18,6 +22,14 @@ from arcomm.credentials import BasicCreds, mkcreds
 from arcomm.command import Command
 
 import warnings
+
+def authorize(connection, secret=''):
+    """Authorize the given connection for elevated privileges"""
+    connection.authorize(secret)
+
+def authorized(connection):
+    """Return authorization status of connection"""
+    return connection.authorized
 
 def background(endpoints, commands, **kwargs):
     """Similar to batch, but the :class:`Pool` opject is returned before
@@ -162,18 +174,6 @@ def tap(callback, func, *args, **kwargs):
     callback(result)
     return result
 
-#
-# Old functions, backward compatible
-#
-
-def authorize(connection, secret=''):
-    """Authorize the given connection for elevated privileges"""
-    connection.authorize(secret)
-
-def authorized(connection):
-    """Return authorization status of connection"""
-    return connection.authorized
-
 def clone(connection, endpoint=None, creds=None, protocol=None, timeout=None,
           **kwargs):
 
@@ -196,12 +196,20 @@ def configure(connection, commands, *args, **kwargs):
     commands.append("end")
     return connection.send(commands, **kwargs)
 
+def execute_until(connection, commands, condition, timeout=30, sleep=5,
+                  exclude=False):
+    return connection.execute_until(commands, condition, timeout=timeout,
+                                    sleep=sleep, exclude=exclude)
+
+#
+# Old functions, backward compatible
+#
+connect_uri = connect
+
 def connect_with_password(host, username, password="", **kwargs):
     """Use a username and password to connect to host"""
     creds = arcomm.BasicCreds(username, password)
     return connect(host, creds=creds, **kwargs)
-
-connect_uri = connect
 
 def create_uri(host, protocol, username, password, port):
     """Create a URI from given parts"""
@@ -210,7 +218,6 @@ def create_uri(host, protocol, username, password, port):
     portpart = ":{}".format(port) if port else ""
     uri = "{}://{}@{}{}".format(protocol, credspart, host, portpart)
     return uri
-
 
 def create_pool(hosts, creds, commands, **kwargs):
     """Return a `Pool` object of hosts and commands
@@ -241,8 +248,3 @@ def execute_pool(hosts, creds, commands, **kwargs):
     warnings.warn("deprecated", DeprecationWarning)
     kwargs['creds'] = creds
     return batch(hosts, commands, **kwargs)
-
-def execute_until(connection, commands, condition, timeout=30, sleep=5,
-                  exclude=False):
-    return connection.execute_until(commands, condition, timeout=timeout,
-                                    sleep=sleep, exclude=exclude)

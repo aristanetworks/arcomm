@@ -18,13 +18,6 @@ from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
 
-# try:
-#     import paramiko
-# except ImportError:
-#     pass
-#from arcomm.protocols._ssh_forward import
-
-#requests.packages.urllib3.disable_warnings()
 warnings.simplefilter("ignore")
 
 class BaseTransport(object):
@@ -159,7 +152,8 @@ class Eapi(BaseProtocol):
 
         try:
             response = self._conn.send(_format_commands(commands),
-                                       encoding=encoding, timestamps=timestamps)
+                                       encoding=encoding,
+                                       timestamps=timestamps)
 
         except (requests.HTTPError, requests.ConnectionError) as exc:
             raise ExecuteFailed(str(exc))

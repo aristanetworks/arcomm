@@ -18,7 +18,7 @@ apt-get install -y build-essential python-pip python-paramiko python-pytest git
 
 #sudo apt-get install -y virtualbox-guest-utils
 
-sudo apt-get install python3-setuptools python3-pip
+sudo apt-get install -y python3-setuptools python3-pip
 
 pip install Sphinx
 pip install jinja2
