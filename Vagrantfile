@@ -5,7 +5,7 @@ Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
   #config.vm.network "public_network"
   #config.vm.synced_folder ".", "/vagrant"
-  config.vm.network "private_network", ip: "192.168.56.6", virtualbox__intnet: "Management"
+  config.vm.network "private_network", type: "dhcp"
   config.vm.provision "shell", inline: $script
 end
 
