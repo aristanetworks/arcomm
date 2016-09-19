@@ -5,10 +5,6 @@
 
 """High level functional API for using arcomm modules"""
 
-__all__ = ['authorize', 'authorized', 'background', 'batch', 'clone', 'close',
-           'configure', 'connect',  'creds', 'execute', 'execute_until',
-           'get_credentials', 'tap']
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import re
@@ -22,6 +18,10 @@ from arcomm.credentials import BasicCreds, mkcreds
 from arcomm.command import Command
 
 import warnings
+
+__all__ = ['authorize', 'authorized', 'background', 'batch', 'clone', 'close',
+           'configure', 'connect',  'creds', 'execute', 'execute_until',
+           'get_credentials', 'tap']
 
 def authorize(connection, secret=''):
     """Authorize the given connection for elevated privileges"""
