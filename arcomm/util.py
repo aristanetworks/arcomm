@@ -70,26 +70,24 @@ def to_commands(commands):
         _loc.append(_cmd)
     return _loc
 
-def session_defaults():
-    return {
-        'hostname': env.ARCOMM_DEFAULT_HOST,
-        'protocol': env.ARCOMM_DEFAULT_PROTOCOL,
-        'timeout': env.ARCOMM_DEFAULT_TIMEOUT,
-        'creds': BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
-                            env.ARCOMM_DEFAULT_PASSWORD)
-    }
-
 def parse_endpoint(uri, use_defaults=True):
 
     result = {}
+
+    defaults = {
+        "protocol": env.ARCOMM_DEFAULT_PROTOCOL,
+        "creds": BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
+                            env.ARCOMM_DEFAULT_PASSWORD)
+    }
     # look for a bare hostname
     match = re.match(r'^([\w\-\.]+)$', uri)
     if match:
         result['hostname'] = match.group(1)
     else:
         parsed = urlparse.urlparse(uri)
-        if parsed.hostname:
-            result['hostname'] = parsed.hostname
+
+        result['hostname'] = parsed.hostname
+
         if parsed.scheme:
             result['protocol'] = parsed.scheme
 
@@ -98,13 +96,15 @@ def parse_endpoint(uri, use_defaults=True):
             if parsed.password:
                 _pass = parsed.password
             result['creds'] = BasicCreds(parsed.username, _pass)
+
         if parsed.port:
             result['port'] = parsed.port
+
         if parsed.path:
             result['path'] = parsed.path
 
     if use_defaults:
-        result = merge_dicts(session_defaults(), result)
+        result = merge_dicts(defaults, result)
 
     return result
 

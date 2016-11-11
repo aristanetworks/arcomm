@@ -6,7 +6,8 @@
 import importlib
 import re
 import time
-from arcomm.util import session_defaults, to_list, parse_endpoint, deepmerge
+from arcomm import env
+from arcomm.util import to_list, parse_endpoint, deepmerge
 from arcomm.command import commands_from_list
 from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
@@ -16,12 +17,6 @@ from arcomm.exceptions import ExecuteFailed
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.parse import urlparse
-
-DEFAULTS = session_defaults()
-DEFAULT_TIMEOUT = DEFAULTS.get('timeout', 30)
-DEFAULT_PROTOCOL = DEFAULTS.get('protocol', 'eapi+http')
-DEFAULT_CREDS = DEFAULTS.get('creds')
-DEFAULT_HOST = DEFAULTS.get('host', 'localhost')
 
 def _load_protocol_adapter(name):
     """Load protocol module from name"""
@@ -63,14 +58,17 @@ class BaseSession(object):
         # Credentials tuple or object to pass to adapter
         if creds:
             creds = self._handle_creds(creds)
+        elif creds in endpoint:
+            creds = endpoint.get('creds')
         else:
-            creds = endpoint.get('creds') or DEFAULT_CREDS
+            creds = BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
+                               env.ARCOMM_DEFAULT_PASSWORD)
 
         #
         self.creds = creds
 
         if not protocol:
-            protocol = endpoint.get('protocol') or DEFAULT_PROTOCOL
+            protocol = endpoint.get('protocol') or env.ARCOMM_DEFAULT_PROTOCOL
 
         # setup protocol and transport
         if '+' in protocol:
@@ -175,7 +173,7 @@ class UntilMixin(object):
         (in seconds) is exceeded. If 'exclude' is set this function will return
         only if the string is _not_ present"""
 
-        timeout = kwargs.pop('timeout', None) or 30
+        timeout = kwargs.pop('timeout', None) or env.ARCOMM_DEFAULT_TIMEOUT
         sleep = kwargs.pop('sleep', None) or 1
         exclude = kwargs.pop('exclude', False)
 
