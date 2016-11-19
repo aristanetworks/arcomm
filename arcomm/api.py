@@ -77,6 +77,7 @@ def batch(endpoints, commands, **kwargs):
         >>> for res in pool:
         ...     print(res.to_yaml())
     """
+
     with Pool(endpoints, commands, **kwargs) as pool:
         try:
             for item in pool.results:
@@ -118,11 +119,10 @@ def connect(endpoint, creds=None, protocol=None, **kwargs):
         >>> import arcomm
         >>> conn = arcomm.connect('ssh://veos', creds=BasicCreds('admin', ''))
     """
-
     if isinstance(creds, (tuple, list)):
         creds = BasicCreds(*creds)
 
-    sess = Session(endpoint, creds, protocol, **kwargs)
+    sess = Session(endpoint, creds=creds, protocol=protocol, **kwargs)
     sess.connect()
 
     return sess
@@ -174,11 +174,10 @@ def tap(callback, func, *args, **kwargs):
     callback(result)
     return result
 
-def clone(connection, endpoint=None, creds=None, protocol=None, timeout=None,
-          **kwargs):
+def clone(connection, endpoint=None, **kwargs):
 
-    if timeout:
-        kwargs['timeout'] = timeout
+    # if timeout:
+    #     kwargs['timeout'] = timeout
 
     return connection.clone(endpoint, **kwargs)
 

@@ -42,11 +42,17 @@ def test_entry():
     arcomm.ExecuteFailed
 
 def test_uri_parsing():
-    pe = arcomm.util.parse_endpoint
-    print()
-    pprint(arcomm.Session('eapi://vswitch1'))
-    pprint(arcomm.Session('eapi+http://vswitch1'))
-    pprint(arcomm.Session('eapi+https://vswitch1'))
+    arcomm.util.parse_endpoint('eapi://admin@vswitch1')
+    arcomm.util.parse_endpoint('eapi://vswitch1')
+    arcomm.util.parse_endpoint('eapi+http://vswitch1')
+    arcomm.util.parse_endpoint('eapi+https://vswitch1')
+    arcomm.util.parse_endpoint('eapi://vswitch1')
+
+    with pytest.raises(ValueError):
+        arcomm.util.parse_endpoint('eapi:/vswitch1')
+        arcomm.util.parse_endpoint('invalid_hostname')
+        arcomm.util.parse_endpoint('0startswithnumber')
+    
 
 def test_execute_ok(protocol):
     response = arcomm.execute(HOST, ['show clock'], protocol=protocol)

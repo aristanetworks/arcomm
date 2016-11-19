@@ -70,43 +70,78 @@ def to_commands(commands):
         _loc.append(_cmd)
     return _loc
 
-def parse_endpoint(uri, use_defaults=True):
+def parse_endpoint(uri):
 
-    result = {}
+    protocol_re = r'([\w\+\-]+)?://'
+    creds_re = r'(?:([\w\-\_]+)(?:\:([\S]+))?@)?'
+    host_re =  (
+        r'((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.)?)+(?:[A-Z]{2,6}\.?|'
+        r'[A-Z0-9-]{2,}\.?)|'
+        r'localhost|'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+    )
+    port_re = r'(?::(\d+))?'
 
-    defaults = {
-        "protocol": env.ARCOMM_DEFAULT_PROTOCOL,
-        "creds": BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
-                            env.ARCOMM_DEFAULT_PASSWORD)
-    }
-    # look for a bare hostname
-    match = re.match(r'^([\w\-\.]+)$', uri)
-    if match:
-        result['hostname'] = match.group(1)
-    else:
-        parsed = urlparse.urlparse(uri)
+    regex = re.compile(r'^' + protocol_re + creds_re + host_re + port_re + r'$',
+        re.IGNORECASE)
+    match = regex.match(uri)
 
-        result['hostname'] = parsed.hostname
+    if not match:
+        # try and match on bare hostname.
+        # NOTE: $. is a pattern that will never match a in a single-line regex.
+        #       I'm using it here to 'fill out' the match groups.
+        regex = re.compile(r'^($.)?($.)?($.)?' + host_re + r'($.)?$',
+            re.IGNORECASE)
+        match = regex.match(uri)
 
-        if parsed.scheme:
-            result['protocol'] = parsed.scheme
+    # if we still don't have a match...
+    if not match:
+        raise ValueError("Invalid URI string:", uri)
 
-        if parsed.username:
-            _pass = ''
-            if parsed.password:
-                _pass = parsed.password
-            result['creds'] = BasicCreds(parsed.username, _pass)
+    keys = ('protocol', 'username', 'password', 'hostname', 'port')
+    parsed = dict(zip(keys, match.groups()))
 
-        if parsed.port:
-            result['port'] = parsed.port
+    if parsed["port"]:
+        parsed["port"] = int(parsed["port"])
 
-        if parsed.path:
-            result['path'] = parsed.path
+    return parsed
 
-    if use_defaults:
-        result = merge_dicts(defaults, result)
-
-    return result
+    # result = {}
+    #
+    # defaults = {
+    #     "protocol": env.ARCOMM_DEFAULT_PROTOCOL,
+    #     "creds": BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
+    #                         env.ARCOMM_DEFAULT_PASSWORD)
+    # }
+    # # look for a bare hostname
+    # match = re.match(r'^([\w\-\.]+)$', uri)
+    # if match:
+    #     result['hostname'] = match.group(1)
+    # else:
+    #
+    #     parsed = urlparse.urlparse(uri)
+    #
+    #     result['hostname'] = parsed.hostname
+    #
+    #     if parsed.scheme:
+    #         result['protocol'] = parsed.scheme
+    #
+    #     if parsed.username:
+    #         _pass = ''
+    #         if parsed.password:
+    #             _pass = parsed.password
+    #         result['creds'] = BasicCreds(parsed.username, _pass)
+    #
+    #     if parsed.port:
+    #         result['port'] = parsed.port
+    #
+    #     if parsed.path:
+    #         result['path'] = parsed.path
+    #
+    # if use_defaults:
+    #     result = merge_dicts(defaults, result)
+    #
+    # return result
 
 def load_endpoints(path):
     endpoints = []

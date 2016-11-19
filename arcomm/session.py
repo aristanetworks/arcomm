@@ -3,6 +3,7 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+from getpass import getpass
 import importlib
 import re
 import time
@@ -39,44 +40,41 @@ class BaseSession(object):
     Base Session
     """
 
-    def __init__(self, endpoint, creds=None, protocol=None, **kwargs):
-
+    def __init__(self, endpoint, **kwargs):
         # connection object returned by the protocol adapter
         self._conn = None
-
         # true if session is authorized (enabled)
         self.authorized = False
 
-        #
-        self.options = kwargs
+        self.params = kwargs
 
         endpoint = parse_endpoint(endpoint)
 
-        #
         self.hostname = endpoint['hostname']
 
-        # Credentials tuple or object to pass to adapter
-        if creds:
-            creds = self._handle_creds(creds)
-        elif creds in endpoint:
-            creds = endpoint.get('creds')
+        # handle creds
+        if endpoint['username']:
+            creds = (endpoint['username'], endpoint['password'])
         else:
-            creds = BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
-                               env.ARCOMM_DEFAULT_PASSWORD)
+            creds = (self.params.get('creds', None)
+                or (env.ARCOMM_DEFAULT_USERNAME, env.ARCOMM_DEFAULT_PASSWORD))
 
-        #
-        self.creds = creds
+        if self.params.get('askpass'):
 
-        if not protocol:
-            protocol = endpoint.get('protocol') or env.ARCOMM_DEFAULT_PROTOCOL
+            password = getpass("{}@{}'s password:".format(creds[0], self.hostname))
+            creds = (creds[0], password)
 
-        # setup protocol and transport
+        self.params['creds'] = self._handle_creds(creds)
+
+        # handle protocol and transport
+        protocol = (endpoint['protocol'] or self.params.get('protocol')
+                    or env.ARCOMM_DEFAULT_PROTOCOL)
+
         if '+' in protocol:
             protocol, transport = protocol.split('+', 1)
-            self.options['transport'] = transport
+            self.params['transport'] = transport
 
-        self.protocol = protocol
-
+        self.params['protocol'] = protocol
         self._protocol_adapter = _load_protocol_adapter(protocol)
 
     def __enter__(self):
@@ -105,7 +103,7 @@ class BaseSession(object):
         """Connect to the remote host"""
 
         self._conn = self._protocol_adapter()
-        self._conn.connect(self.hostname, self.creds, **self.options)
+        self._conn.connect(self.hostname, **self.params)
 
     def authorize(self, password='', username=None):
         self._conn.authorize(password, username)
@@ -113,25 +111,13 @@ class BaseSession(object):
 
     enable = authorize
 
-    # endpoint, creds=None, protocol=None, options={}
-    def clone(self, hostname=None, creds=None, protocol=None, **kwargs):
-        """
-        """
-
+    def clone(self, hostname=None, **kwargs):
         if not hostname:
             hostname = self.hostname
 
-        if creds:
-            creds = self._handle_creds(creds)
-        else:
-            creds = self.creds
+        params = deepmerge(self.params, kwargs)
 
-        if not protocol:
-            protocol = self.protocol
-
-        options = deepmerge(kwargs, self.options)
-
-        cloned = Session(hostname, creds, protocol, **options)
+        cloned = Session(hostname, **params)
         cloned.connect()
         return cloned
 
