@@ -349,7 +349,7 @@ IPython Magics
     end
 
 
-.. parsed-literal:: yaml
+.. parsed-literal::
 
     host: ck214.sjc.aristanetworks.com
     status: ok
