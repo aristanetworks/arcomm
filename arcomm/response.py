@@ -82,11 +82,12 @@ class ResponseStore(object):
 
     def __str__(self):
 
-        str_ = ""
-        for response in self._store:
-            str_ += "{}#{}\n{}\n".format(self.host, str(response.command).strip(),
-                                       response.output)
-        return str_
+        # str_ = ""
+        # for response in self._store:
+        #     str_ += "{}#{}\n{}\n".format(self.host, str(response.command).strip(),
+        #                                response.output)
+        # return str_
+        return self.to_yaml()
 
     def to_yaml(self):
         yaml = ['host: {}'.format(self.host)]
