@@ -296,3 +296,91 @@ API Usage
     u'modelName': u'vEOS', u'architecture': u'i386',
     u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',
     u'hardwareRevision': u''}
+
+
+IPython Magics
+--------------
+
+.. code:: bash
+
+    $ vagrant up
+    $ vagrant ssh
+    ubuntu@ubuntu-xenial:~$ jupyter notebook --no-browser --ip="*"
+
+.. code:: python
+
+    %reload_ext arcomm.ipython.magics
+
+.. code:: python
+
+    %%arcomm eapi+http://admin@switch-ip-or-hostname --askpass
+    show clock
+
+.. parsed-literal::
+
+    admin@ck214.sjc.aristanetworks.com's password:········
+    host: ck214.sjc.aristanetworks.com
+    status: ok
+    commands:
+      - command: show clock
+        output: |
+          Sat Nov 19 05:36:34 2016
+          Timezone: UTC
+          Clock source: NTP server (172.28.131.194)
+
+
+
+
+.. parsed-literal::
+
+    [<ResponseStore [ok]>]
+
+
+
+.. code:: python
+
+    %%arcomm ck214.sjc.aristanetworks.com
+    configure
+    ip host dummy 127.0.0.1
+    end
+    ping ip dummy repeat 1
+    configure
+    no ip host dummy
+    end
+
+
+.. parsed-literal:: yaml
+
+    host: ck214.sjc.aristanetworks.com
+    status: ok
+    commands:
+      - command: configure
+        output: |
+
+      - command: ip host dummy 127.0.0.1
+        output: |
+
+      - command: end
+        output: |
+
+      - command: ping ip dummy repeat 1
+        output: |
+          PING dummy (127.0.0.1) 72(100) bytes of data.
+          80 bytes from localhost.localdomain (127.0.0.1): icmp_req=1 ttl=64 time=0.106 ms
+
+          --- dummy ping statistics ---
+          1 packets transmitted, 1 received, 0% packet loss, time 0ms
+          rtt min/avg/max/mdev = 0.106/0.106/0.106/0.000 ms
+      - command: configure
+        output: |
+
+      - command: no ip host dummy
+        output: |
+
+      - command: end
+        output: |
+
+
+.. parsed-literal::
+
+    [<ResponseStore [ok]>]
