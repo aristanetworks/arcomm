@@ -114,13 +114,13 @@ Console Example
 
 .. code-block:: bash
 
-    $ arcomm veos
+    $ arcomm vswitch1
     Enter commands (one per line).
     Enter '.' alone to send or 'Crtl-C' to quit.
     > show version
     > .
     ---
-    host: veos
+    host: vswitch1
     status: ok
     commands:
     - command: show version
@@ -146,9 +146,9 @@ or pipe in the commands...
 
 .. code-block:: bash
 
-    $ echo "show version" | arcomm veos
+    $ echo "show version" | arcomm vswitch1
     ---
-    host: veos
+    host: vswitch1
     status: ok
     commands:
     - command: show version
@@ -214,10 +214,10 @@ Command-line w/ --variables argument:
 
 .. code-block:: bash
 
-    $ cat scaffolding/sw-upgrade.script | arcomm veos \
+    $ cat scaffolding/sw-upgrade.script | arcomm vswitch1 \
         --variables='{"image": "vEOS-4.15.2F.swi"}'
     ---
-    host: veos
+    host: vswitch1
     status: ok
     commands:
     - command: dir flash:vEOS-4.15.2F.swi
@@ -259,7 +259,7 @@ API Usage
 
     >>> import arcomm
 
-    >>> conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),
+    >>> conn = arcomm.connect('vswitch1', creds=arcomm.BasicCreds('admin', ''),
         protocol='eapi+http')
 
     >>> responses = conn.execute(['show clock', 'show version'])
@@ -313,13 +313,13 @@ IPython Magics
 
 .. code:: python
 
-    %%arcomm eapi+http://admin@switch-ip-or-hostname --askpass
+    %%arcomm eapi+http://admin@vswitch1 --askpass
     show clock
 
 .. parsed-literal::
 
-    admin@ck214.sjc.aristanetworks.com's password:········
-    host: ck214.sjc.aristanetworks.com
+    admin@vswitch1's password:········
+    host: vswitch1
     status: ok
     commands:
       - command: show clock
@@ -339,7 +339,7 @@ IPython Magics
 
 .. code:: python
 
-    %%arcomm ck214.sjc.aristanetworks.com
+    %%arcomm vswitch1
     configure
     ip host dummy 127.0.0.1
     end
@@ -351,7 +351,7 @@ IPython Magics
 
 .. parsed-literal::
 
-    host: ck214.sjc.aristanetworks.com
+    host: vswitch1
     status: ok
     commands:
       - command: configure
