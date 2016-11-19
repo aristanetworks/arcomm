@@ -11,6 +11,7 @@ IPython Magic functions for Arcomm
 import arcomm
 import argparse
 import re
+import sys
 from getpass import getpass, getuser
 
 from IPython.core import magic_arguments
@@ -62,8 +63,11 @@ class ArcommMagics(Magics):
 
             if commands:
                 response = conn.send(commands, encoding=args.encoding)
-                responses.append(response)
 
+                print(response)
+                sys.stdout.flush()
+
+                responses.append(response)
         return responses
 
 def load_ipython_extension(shell):
