@@ -10,6 +10,7 @@ IPython Magic functions for Arcomm
 
 import arcomm
 import argparse
+import collections
 import re
 import sys
 from getpass import getpass, getuser
@@ -24,7 +25,7 @@ class ArcommMagics(Magics):
 
     def __init__(self, shell, **kwargs):
         super().__init__(shell, **kwargs)
-        self._connections = []
+        self._connections = collections.OrderedDict()
 
     @needs_local_scope
     @magic_arguments.magic_arguments()
@@ -52,14 +53,14 @@ class ArcommMagics(Magics):
             commands = [args.command]
         elif cell:
             commands = [cmd for cmd in cell.splitlines()]
-        for endpoint in args.endpoints:
-            reuse = [conn for conn in self._connections if conn.hostname == endpoint]
 
-            if reuse:
-                conn = reuse[0]
+        for endpoint in args.endpoints:
+            
+            if endpoint in self._connections:
+                conn = endpoint
             else:
                 conn = arcomm.connect(endpoint, askpass=args.askpass)
-                self._connections.append(conn)
+                self._connections[conn.hostname] = conn
 
             if commands:
                 response = conn.send(commands, encoding=args.encoding)
