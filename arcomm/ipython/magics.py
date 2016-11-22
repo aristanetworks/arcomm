@@ -55,9 +55,9 @@ class ArcommMagics(Magics):
             commands = [cmd for cmd in cell.splitlines()]
 
         for endpoint in args.endpoints:
-            
+
             if endpoint in self._connections:
-                conn = endpoint
+                conn = self._connections[endpoint]
             else:
                 conn = arcomm.connect(endpoint, askpass=args.askpass)
                 self._connections[conn.hostname] = conn
