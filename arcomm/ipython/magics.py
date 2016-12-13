@@ -9,7 +9,6 @@ IPython Magic functions for Arcomm
 """
 
 import arcomm
-import argparse
 import collections
 import re
 import sys
@@ -69,6 +68,7 @@ class ArcommMagics(Magics):
                 sys.stdout.flush()
 
                 responses.append(response)
+
         return responses
 
 def load_ipython_extension(shell):
