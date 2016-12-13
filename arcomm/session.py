@@ -54,13 +54,15 @@ class BaseSession(object):
 
         # handle creds
         if endpoint['username']:
-            creds = (endpoint['username'], endpoint['password'])
+            password = endpoint['password']
+            if password is None:
+                password = ""
+            creds = (endpoint['username'], password)
         else:
             creds = (self.params.get('creds', None)
                 or (env.ARCOMM_DEFAULT_USERNAME, env.ARCOMM_DEFAULT_PASSWORD))
 
         if self.params.get('askpass'):
-
             password = getpass("{}@{}'s password:".format(creds[0], self.hostname))
             creds = (creds[0], password)
 
