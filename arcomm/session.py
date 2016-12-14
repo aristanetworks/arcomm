@@ -13,7 +13,7 @@ from arcomm.command import commands_from_list
 from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
 from arcomm.exceptions import ExecuteFailed
-
+from arcomm.protocols.protocol import BaseProtocol
 #from urlparse import urlparse
 from future.standard_library import install_aliases
 install_aliases()
@@ -91,8 +91,11 @@ class BaseSession(object):
 
         self.close()
 
-    def __repr__(self):
+    def __str__(self):
         return str(self.__dict__)
+
+    def __repr__(self):
+        return '<{} [{}]>'.format(self.__class__.__name__, isinstance(self._conn, BaseProtocol) )
 
     def _handle_creds(self, creds):
         """
