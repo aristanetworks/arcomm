@@ -59,19 +59,11 @@ class ResponseStore(object):
 
     def __init__(self, host, **kwargs):
 
-        #
         self._store = []
-
-        #
         self.host = host
-
-        #
         self.status = 'ok'
-
-        #
         self._keywords = kwargs
 
-        #
         self._subscribers = []
 
     def __iter__(self):
