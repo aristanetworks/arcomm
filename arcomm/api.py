@@ -168,8 +168,10 @@ def execute(endpoint, commands, **kwargs):
 
     return response
 
+send = execute
+
 def tap(callback, func, *args, **kwargs):
-    """???"""
+    """??? Experimentalizing ???"""
     result = func(*args, **kwargs)
     callback(result)
     return result
