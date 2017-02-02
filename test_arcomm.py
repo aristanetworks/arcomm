@@ -52,7 +52,7 @@ def test_uri_parsing():
         arcomm.util.parse_endpoint('eapi:/vswitch1')
         arcomm.util.parse_endpoint('invalid_hostname')
         arcomm.util.parse_endpoint('0startswithnumber')
-    
+
 
 def test_execute_ok(protocol):
     response = arcomm.execute(HOST, ['show clock'], protocol=protocol)
@@ -215,3 +215,14 @@ def test_command(protocol):
 def test_credentials():
     creds = arcomm.creds("admin", password="none")
     print(creds)
+
+@pytest.mark.parametrize("protocol", [
+    ("eapi+http"),
+    ("ssh")
+])
+def test_timeouts(protocol):
+    creds = arcomm.creds("admin", password="")
+    response = arcomm.execute(HOST, ["bash timeout 10 sleep 5"], timeout=1, creds=creds, protocol=protocol)
+
+    with pytest.raises(arcomm.exceptions.ExecuteFailed):
+        response.raise_for_error()

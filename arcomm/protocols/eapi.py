@@ -43,17 +43,18 @@ class BaseTransport(object):
         }
 
     @abc.abstractmethod
-    def send(self, commands, encoding, timestamps):
+    def send(self, commands, encoding, timestamps, timeout):
         pass
 
 class HttpTransport(BaseTransport):
 
-    def __init__(self, host, creds=None, port=None, verify=True):
+    def __init__(self, host, creds=None, port=None, verify=True, timeout=None):
         self.scheme = 'http'
         self.host = host
         self.creds = creds
         self.port = port
         self.verify = verify
+        self.timeout = timeout
         self.headers = {'Content-Type': 'application/json'}
 
     def get_endpoint(self):
@@ -66,14 +67,21 @@ class HttpTransport(BaseTransport):
 
         return endpoint
 
-    def send(self, commands, encoding='text', timestamps=False):
+    def send(self, commands, encoding='text', timestamps=False, timeout=None):
         endpoint = self.get_endpoint()
 
         creds = self.creds.auth if hasattr(self.creds, 'auth') else None
 
+        if not timeout:
+            timeout = self.timeout
+
         payload = self.payload(commands, encoding, timestamps)
-        response = requests.post(endpoint, auth=creds, headers=self.headers,
-                                 data=json.dumps(payload), verify=self.verify)
+
+        response = requests.post(endpoint, auth=creds,
+                                 headers=self.headers,
+                                 data=json.dumps(payload),
+                                 verify=self.verify,
+                                 timeout=timeout)
 
         response.raise_for_status()
         return response
@@ -127,8 +135,11 @@ class Eapi(BaseProtocol):
 
         verify_ssl = kwargs.get('verify', False)
 
+        timeout = kwargs.get('timeout', None)
+
         self._conn = self._transports[transport](host, creds, port=port,
-                                                 verify=verify_ssl)
+                                                 verify=verify_ssl,
+                                                 timeout=timeout)
         #self._conn.connect()
 
         try:
@@ -146,16 +157,17 @@ class Eapi(BaseProtocol):
 
         encoding = kwargs.get('encoding', 'text')
         timestamps = kwargs.get('timestamps', False)
-
+        timeout = kwargs.get('timeout', None)
         if self._authorize:
             commands = [self._authorize] + commands
 
         try:
             response = self._conn.send(_format_commands(commands),
                                        encoding=encoding,
-                                       timestamps=timestamps)
+                                       timestamps=timestamps,
+                                       timeout=timeout)
 
-        except (requests.HTTPError, requests.ConnectionError) as exc:
+        except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as exc:
             raise ExecuteFailed(str(exc))
 
         data = response.json()
