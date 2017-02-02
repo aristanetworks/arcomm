@@ -220,7 +220,17 @@ def test_credentials():
     ("eapi+http"),
     ("ssh")
 ])
-def test_timeouts(protocol):
+def test_connect_timeout(protocol):
+    creds = arcomm.creds("admin", password="")
+
+    with pytest.raises(arcomm.exceptions.ConnectFailed):
+        arcomm.connect("1.2.3.4", timeout=2, creds=creds, protocol=protocol)
+
+@pytest.mark.parametrize("protocol", [
+    ("eapi+http"),
+    ("ssh")
+])
+def test_send_timeout(protocol):
     creds = arcomm.creds("admin", password="")
     response = arcomm.execute(HOST, ["bash timeout 10 sleep 5"], timeout=1, creds=creds, protocol=protocol)
 
