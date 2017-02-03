@@ -29,6 +29,8 @@ try:
 except ImportError:
     raise ProtocolException("paramiko is required for SSH connections")
 
+from contextlib import ExitStack
+
 class Ssh(BaseProtocol):
     """SSH class for interacting with Arista switches"""
 
@@ -156,7 +158,10 @@ class Ssh(BaseProtocol):
 
         options = kwargs
 
-        timeout = options.get('timeout') or self._timeout
+        timeout = options.get('timeout')
+        if timeout:
+            self._timeout = timeout
+
         port = options.get('port') or self._port
 
         self._ssh = paramiko.SSHClient()
@@ -176,7 +181,7 @@ class Ssh(BaseProtocol):
         # we must invoke a shell, otherwise session commands like 'enable',
         # 'terminal width', etc. won't stick
         channel = self._ssh.invoke_shell()
-        channel.settimeout(timeout)
+        channel.settimeout(self._timeout)
         self._channel = channel
 
         # capture login banner and clear any login messages
@@ -191,14 +196,22 @@ class Ssh(BaseProtocol):
 
     def send(self, commands, **kwargs):
         """Send a series of commands to the device"""
-
-        options = kwargs
-
         responses = []
 
-        for command in commands:
-            response = self._send(command)
-            responses.append(response)
+        timeout = kwargs.get('timeout')
+
+        # temporarily set channel timeout.  ExitStack will restore the original
+        # value within this context
+        with ExitStack() as stack:
+
+            if timeout and time != self._timeout:
+                stack.callback(self._channel.settimeout, self._timeout)
+                self._channel.settimeout(timeout)
+
+            for command in commands:
+                response = self._send(command)
+                responses.append(response)
+
         return responses
 
     def _send(self, command):

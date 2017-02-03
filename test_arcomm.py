@@ -3,10 +3,7 @@ import arcomm
 import pytest
 import os
 
-from pprint import pprint
-
-"""
-"""
+#from pprint import pprint
 
 NXHOST = 'bogus'
 ADMIN_CREDS = arcomm.BasicCreds('admin', '')
@@ -210,11 +207,11 @@ def test_global_subscriber(protocol):
 def test_command(protocol):
 
     cmd = arcomm.mkcmd('show version', prompt=r'password', answer='no')
-    print(cmd.__dict__)
+    #print(cmd.__dict__)
 
 def test_credentials():
     creds = arcomm.creds("admin", password="none")
-    print(creds)
+    #print(creds)
 
 @pytest.mark.parametrize("protocol", [
     ("eapi+http"),
@@ -224,15 +221,26 @@ def test_connect_timeout(protocol):
     creds = arcomm.creds("admin", password="")
 
     with pytest.raises(arcomm.exceptions.ConnectFailed):
-        arcomm.connect("1.2.3.4", timeout=2, creds=creds, protocol=protocol)
+        conn = arcomm.connect("1.2.3.4", timeout=1, creds=creds, protocol=protocol)
+
+@pytest.mark.parametrize("protocol", [
+    ("eapi+http"),
+    ("ssh")
+])
+def test_session_timeout(protocol):
+    conn = arcomm.connect(HOST, timeout=5, creds=ADMIN_CREDS, protocol=protocol)
+
+    with pytest.raises(arcomm.exceptions.ExecuteFailed):
+        response = conn.execute(["bash timeout 15 sleep 10"])
+        response.raise_for_error()
 
 @pytest.mark.parametrize("protocol", [
     ("eapi+http"),
     ("ssh")
 ])
 def test_send_timeout(protocol):
-    creds = arcomm.creds("admin", password="")
-    response = arcomm.execute(HOST, ["bash timeout 10 sleep 5"], timeout=1, creds=creds, protocol=protocol)
+    conn = arcomm.connect(HOST, creds=ADMIN_CREDS, protocol=protocol)
 
     with pytest.raises(arcomm.exceptions.ExecuteFailed):
+        response = conn.execute(["bash timeout 15 sleep 10"], timeout=1)
         response.raise_for_error()
