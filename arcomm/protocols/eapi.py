@@ -17,8 +17,7 @@ import warnings
 from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.command import Command
-
-warnings.simplefilter("ignore")
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 class BaseTransport(object):
     __metaclass__  = abc.ABCMeta
@@ -48,12 +47,11 @@ class BaseTransport(object):
 
 class HttpTransport(BaseTransport):
 
-    def __init__(self, host, creds=None, port=None, verify=True, timeout=None):
+    def __init__(self, host, creds=None, port=None, timeout=None):
         self.scheme = 'http'
         self.host = host
         self.creds = creds
         self.port = port
-        self.verify = verify
         self.timeout = timeout
         self.headers = {'Content-Type': 'application/json'}
 
@@ -77,10 +75,11 @@ class HttpTransport(BaseTransport):
 
         payload = self.payload(commands, encoding, timestamps)
 
+
         response = requests.post(endpoint, auth=creds,
                                  headers=self.headers,
                                  data=json.dumps(payload),
-                                 verify=self.verify,
+                                 verify=False,
                                  timeout=timeout)
 
         response.raise_for_status()
@@ -91,6 +90,13 @@ class HttpsTransport(HttpTransport):
     def __init__(self, *args, **kwargs):
         super(HttpsTransport, self).__init__(*args, **kwargs)
         self.scheme = 'https'
+
+    def send(self, commands, encoding='text', timestamps=False, timeout=None):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=InsecureRequestWarning)
+
+            return super(HttpsTransport, self).send(commands, encoding,
+                                                    timestamps, timeout)
 
 # class UnixTransport(BaseTransport):
 #     def __init__(self):
@@ -133,18 +139,14 @@ class Eapi(BaseProtocol):
 
         port = kwargs.get('port')
 
-        verify_ssl = kwargs.get('verify', False)
-
         timeout = kwargs.get('timeout', None)
 
         self._conn = self._transports[transport](host, creds, port=port,
-                                                 verify=verify_ssl,
                                                  timeout=timeout)
-        #self._conn.connect()
 
         try:
             # test the connection
-            self.send([Command('show version')])
+            self.send([Command('show hostname')])
         except ExecuteFailed as exc:
             if '401 Client Error' in str(exc):
                 raise AuthenticationFailed(str(exc))
