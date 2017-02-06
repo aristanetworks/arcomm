@@ -159,7 +159,9 @@ class Eapi(BaseProtocol):
                                        timestamps=timestamps,
                                        timeout=timeout)
 
-        except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as exc:
+        except (requests.HTTPError,
+                requests.ConnectionError,
+                requests.Timeout) as exc:
             raise ExecuteFailed(str(exc))
 
         data = response.json()
