@@ -98,14 +98,6 @@ class HttpsTransport(HttpTransport):
             return super(HttpsTransport, self).send(commands, encoding,
                                                     timestamps, timeout)
 
-# class UnixTransport(BaseTransport):
-#     def __init__(self):
-#         super(UnixTransport, self).__init__()
-#         self.scheme = 'http+unix'
-
-# class SshTransport(HttpTransport):
-#     pass
-
 def _format_commands(commands):
     """converts commands to Eapi formatted dicts"""
 
@@ -126,8 +118,6 @@ class Eapi(BaseProtocol):
         self._transports = {
             'http': HttpTransport,
             'https': HttpsTransport
-            #'unix': UnixTransport,
-            #'ssh': SshTransport
         }
 
     def close(self):
