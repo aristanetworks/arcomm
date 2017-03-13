@@ -8,8 +8,8 @@ import sys
 __version_info__ = (2, 1, 0)
 __version__ = '2.1.0'
 
-if sys.version_info < (2, 6):
-    raise RuntimeError('You need Python 2.6+ for arcomm.')
+if sys.version_info < (2, 7):
+    raise RuntimeError('You need Python 2.7+ for arcomm.')
 
 __title__ = 'arcomm'
 __description__ = 'Library for connecting to Arista switches'
