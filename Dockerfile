@@ -29,4 +29,4 @@ WORKDIR /arcomm
 #CMD ["jupyter", "notebook", "--no-broswer", "--ip='*'"]
 CMD ["bash"]
 
-EXPOSE 8888
+#EXPOSE 8888
