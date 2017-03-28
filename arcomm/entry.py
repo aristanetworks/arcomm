@@ -5,9 +5,12 @@
 
 """Command line interface for arcomm"""
 
+import getpass
 import json
 import re
 import sys
+import yaml
+
 import arcomm
 
 def main():
@@ -28,7 +31,7 @@ def main():
     arg("-u", "--username", help="specifies the username on the switch")
 
     arg("-p", "--password", default="", help="specifies users password")
-
+    arg("-s", "--secret-file", help="read passwords from file")
     arg("--authorize", action="store_true")
 
     arg("-a", "--authorize-password", default=None,
@@ -74,6 +77,10 @@ def main():
     if args.username:
         password = args.password or ''
         options['creds'] = arcomm.BasicCreds(args.username, password)
+    if args.secret_file:
+        with open(args.secret_file, "r") as stream:
+            secrets = yaml.load(stream)
+            password = secrets.get(username)
 
     if args.protocol:
         options['protocol'] = args.protocol
