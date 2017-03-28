@@ -115,7 +115,7 @@ def main():
             print("Enter '.' alone to send or 'Crtl-C' to quit.")
             try:
                 while True:
-                    line = raw_input('> ')
+                    line = input('> ')
                     if line == ".":
                         break
                     script.append(line)
