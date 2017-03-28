@@ -74,13 +74,21 @@ def main():
     elif args.authorize:
         options['authorize'] = ''
 
-    if args.username:
-        password = args.password or ''
-        options['creds'] = arcomm.BasicCreds(args.username, password)
+    username = args.username
+    password = args.password
+
+    if not username:
+        username = getpass.getuser()
+
     if args.secret_file:
         with open(args.secret_file, "r") as stream:
             secrets = yaml.load(stream)
             password = secrets.get(username)
+
+    if not password:
+        password = getpass.getpass("password for {}: ".format(username))
+
+    options['creds'] = arcomm.BasicCreds(args.username, password)
 
     if args.protocol:
         options['protocol'] = args.protocol
