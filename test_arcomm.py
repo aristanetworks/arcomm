@@ -2,15 +2,18 @@
 import arcomm
 import pytest
 import os
-
+import tempfile
 #from pprint import pprint
 
 NXHOST = 'bogus'
-ADMIN_CREDS = arcomm.BasicCreds('admin', '')
+ARCOMM_USER = os.environ.get('ARCOMM_USER', 'admin')
+ARCOMM_PASS = os.environ.get('ARCOMM_PASS')
+ARCOMM_CREDS = arcomm.BasicCreds(ARCOMM_USER, ARCOMM_PASS)
 OPS_CREDS = arcomm.BasicCreds('ops', 'ops!')
 ENABLE_SECRET = 's3cr3t'
 HOST = os.environ.get('ARCOMM_HOST', 'veos')
 
+print(ARCOMM_CREDS)
 #
 # @pytest.fixture(scope='module', autouse=True)
 # def init_dut():
@@ -55,7 +58,7 @@ def test_execute_ok(protocol):
     response = arcomm.execute(HOST, ['show clock'], protocol=protocol)
 
 def test_execute_sess():
-    conn = arcomm.connect(HOST, creds=ADMIN_CREDS)
+    conn = arcomm.connect(HOST, creds=ARCOMM_CREDS)
     arcomm.execute(conn, 'show version')
 
 def test_bad_auth(protocol):
@@ -110,7 +113,7 @@ def test_batch(protocol):
 
 
 def test_mixin_until():
-    with arcomm.Session(HOST, creds=ADMIN_CREDS) as sess:
+    with arcomm.Session(HOST, creds=ARCOMM_CREDS) as sess:
         sess.execute_until(['show clock'], condition=r'\:[0-5]0', timeout=30,
                            sleep=.1)
 
@@ -139,8 +142,8 @@ def test_clone():
 
 def test_oldway_funcs():
 
-    username = ADMIN_CREDS.username
-    password = ADMIN_CREDS.password
+    username = ARCOMM_CREDS.username
+    password = ARCOMM_CREDS.password
 
     creds = arcomm.get_credentials(username, password)
     commands = ['show clock']
@@ -228,7 +231,7 @@ def test_connect_timeout(protocol):
     ("ssh")
 ])
 def test_session_timeout(protocol):
-    conn = arcomm.connect(HOST, timeout=5, creds=ADMIN_CREDS, protocol=protocol)
+    conn = arcomm.connect(HOST, timeout=5, creds=ARCOMM_CREDS, protocol=protocol)
 
     with pytest.raises(arcomm.exceptions.ExecuteFailed):
         response = conn.execute(["bash timeout 15 sleep 10"])
@@ -239,8 +242,26 @@ def test_session_timeout(protocol):
     ("ssh")
 ])
 def test_send_timeout(protocol):
-    conn = arcomm.connect(HOST, creds=ADMIN_CREDS, protocol=protocol)
+    conn = arcomm.connect(HOST, creds=ARCOMM_CREDS, protocol=protocol)
 
     with pytest.raises(arcomm.exceptions.ExecuteFailed):
         response = conn.execute(["bash timeout 15 sleep 10"], timeout=1)
         response.raise_for_error()
+
+
+# def test_secrets(request):
+#
+#     # create a temporary secrets file
+#     if not os.path.isdir(arcomm.env.ARCOMM_CONF_DIR):
+#         os.mkdir(arcomm.env.ARCOMM_CONF_DIR)
+#     tmpfd, tmppath = tempfile.mkstemp('.yml', dir=arcomm.env.ARCOMM_CONF_DIR)
+#     def _cleanup(): os.remove(tmppath)
+#     request.addfinalizer(_cleanup)
+#     with os.fdopen(tmpfd, 'w') as stream:
+#         stream.write("{}: '{}'\n".format(ARCOMM_CREDS.username, ARCOMM_CREDS.password))
+#     arcomm.env.ARCOMM_SECRETS_FILE = tmppath
+#
+#     conn = arcomm.connect(HOST, creds=(ARCOMM_USER, None), protocol='eapi+http')
+#     response = conn.execute('show hostname')
+#
+#     print(response)
