@@ -28,10 +28,16 @@ def main():
     arg("--encoding", default="text", choices=["json", "text"],
         help="control output formatting")
 
-    arg("-u", "--username", help="specifies the username on the switch")
+    arg("-u", "--username", default="admin",
+        help="specifies the username on the switch")
 
     arg("-p", "--password", default="", help="specifies users password")
+
+    arg("--no-password", action="store_true",
+        help="specifies no password required for user")
+
     arg("-s", "--secret-file", help="read passwords from file")
+
     arg("--authorize", action="store_true")
 
     arg("-a", "--authorize-password", default=None,
@@ -75,7 +81,11 @@ def main():
         options['authorize'] = ''
 
     username = args.username
-    password = args.password
+
+    if args.no_password:
+        password = ""
+    else:
+        password = args.password
 
     if not username:
         username = getpass.getuser()
