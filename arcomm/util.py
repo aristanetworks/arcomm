@@ -106,43 +106,6 @@ def parse_endpoint(uri):
 
     return parsed
 
-    # result = {}
-    #
-    # defaults = {
-    #     "protocol": env.ARCOMM_DEFAULT_PROTOCOL,
-    #     "creds": BasicCreds(env.ARCOMM_DEFAULT_USERNAME,
-    #                         env.ARCOMM_DEFAULT_PASSWORD)
-    # }
-    # # look for a bare hostname
-    # match = re.match(r'^([\w\-\.]+)$', uri)
-    # if match:
-    #     result['hostname'] = match.group(1)
-    # else:
-    #
-    #     parsed = urlparse.urlparse(uri)
-    #
-    #     result['hostname'] = parsed.hostname
-    #
-    #     if parsed.scheme:
-    #         result['protocol'] = parsed.scheme
-    #
-    #     if parsed.username:
-    #         _pass = ''
-    #         if parsed.password:
-    #             _pass = parsed.password
-    #         result['creds'] = BasicCreds(parsed.username, _pass)
-    #
-    #     if parsed.port:
-    #         result['port'] = parsed.port
-    #
-    #     if parsed.path:
-    #         result['path'] = parsed.path
-    #
-    # if use_defaults:
-    #     result = merge_dicts(defaults, result)
-    #
-    # return result
-
 def load_endpoints(path):
     endpoints = []
 
