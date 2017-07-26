@@ -5,6 +5,8 @@
 
 """Command line interface for arcomm"""
 
+from __future__ import print_function
+
 import getpass
 import json
 import re
