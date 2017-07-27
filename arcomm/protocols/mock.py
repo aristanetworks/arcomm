@@ -66,7 +66,7 @@ class Mock(BaseProtocol):
         self._connected = False
 
     def connect(self, host, creds, **kwargs):
-        if 'bad' in creds.password or 'bad' in creds.username:
+        if (creds.password and 'bad' in creds.password) or 'bad' in creds.username:
             raise AuthenticationFailed('Invalid username/password')
 
         self._connected = True
