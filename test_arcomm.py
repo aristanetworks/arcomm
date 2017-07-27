@@ -13,7 +13,6 @@ OPS_CREDS = arcomm.BasicCreds('ops', 'ops!')
 ENABLE_SECRET = 's3cr3t'
 HOST = os.environ.get('ARCOMM_HOST', 'veos')
 
-print(ARCOMM_CREDS)
 #
 # @pytest.fixture(scope='module', autouse=True)
 # def init_dut():
@@ -136,7 +135,8 @@ def test_clone():
 
     sess = arcomm.Session(HOST, creds=OPS_CREDS)
     sess.connect()
-    cloned = sess.clone('other')
+    cloned = sess.clone('other', creds=('admin', 'none'))
+
     assert cloned.hostname != sess.hostname
     assert cloned._conn != sess._conn
 
