@@ -3,12 +3,15 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from getpass import getpass
 import importlib
 import re
 import time
 from arcomm import env
-from arcomm.util import to_list, parse_endpoint, deepmerge
+from arcomm.util import to_list, parse_endpoint, dictmerge
 from arcomm.command import commands_from_list
 from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
@@ -95,7 +98,8 @@ class BaseSession(object):
         return str(self.__dict__)
 
     def __repr__(self):
-        return '<{} [{}]>'.format(self.__class__.__name__, isinstance(self._conn, BaseProtocol) )
+        return '<{} [{}]>'.format(self.__class__.__name__,
+                                  isinstance(self._conn, BaseProtocol))
 
     def _handle_creds(self, creds):
         """
@@ -120,7 +124,7 @@ class BaseSession(object):
         if not hostname:
             hostname = self.hostname
 
-        params = deepmerge(self.params, kwargs)
+        params = dictmerge(self.params, kwargs)
 
         cloned = Session(hostname, **params)
         cloned.connect()
