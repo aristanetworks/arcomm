@@ -42,16 +42,16 @@ def merge_dicts(*args):
     return merged
 dictmerge = merge_dicts
 
-def deepmerge(source, destination):
-    for (key, value) in iteritems(source):
-        if isinstance(value, dict):
-            # get node or create one
-            node = destination.setdefault(key, {})
-            _merge(value, node)
-        else:
-            destination[key] = value
-
-    return destination
+# def deepmerge(source, destination):
+#     for (key, value) in iteritems(source):
+#         if isinstance(value, dict):
+#             # get node or create one
+#             node = destination.setdefault(key, {})
+#             _merge(value, node)
+#         else:
+#             destination[key] = value
+#
+#     return destination
 
 def indentblock(text, spaces=0):
     """Indent multiple lines of text to the same level"""
