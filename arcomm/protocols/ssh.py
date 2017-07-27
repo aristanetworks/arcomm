@@ -169,7 +169,8 @@ class Ssh(BaseProtocol):
 
         try:
             self._ssh.connect(host, port, username=creds.username,
-                         password=creds.password, timeout=timeout)
+                         password=creds.password, timeout=timeout,
+                         look_for_keys=False)
 
         except paramiko.AuthenticationException as exc:
             raise AuthenticationFailed(str(exc))
