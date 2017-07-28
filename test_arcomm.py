@@ -7,7 +7,7 @@ import tempfile
 
 NXHOST = 'bogus'
 ARCOMM_USER = os.environ.get('ARCOMM_USER', 'admin')
-ARCOMM_PASS = os.environ.get('ARCOMM_PASS')
+ARCOMM_PASS = os.environ.get('ARCOMM_PASS', "")
 ARCOMM_CREDS = arcomm.BasicCreds(ARCOMM_USER, ARCOMM_PASS)
 OPS_CREDS = arcomm.BasicCreds('ops', 'ops!')
 ENABLE_SECRET = 's3cr3t'
@@ -18,11 +18,13 @@ HOST = os.environ.get('ARCOMM_HOST', 'veos')
 # def init_dut():
 #     pass
 
-arcomm.env.ARCOMM_DEFAULT_PROTOCOL = 'mock'
-
 @pytest.fixture(scope='module', autouse=True) #, params=['eapi+http', 'ssh'])
 def protocol(request):
-    return arcomm.env.ARCOMM_DEFAULT_PROTOCOL #request.param
+    protocol = os.environ.get('ARCOMM_DEFAULT_PROTOCOL', 'mock')
+
+    arcomm.env.ARCOMM_DEFAULT_PROTOCOL = protocol
+
+    return protocol
 
 def test_entry():
 
@@ -131,14 +133,17 @@ def test_tap():
     result = arcomm.tap(callback, arcomm.execute, 'veos', 'show version')
     assert hasattr(bob, 'was_here')
 
-def test_clone():
+def test_clone(protocol):
+    print(HOST, ARCOMM_CREDS)
+    sess = arcomm.connect(HOST, creds=ARCOMM_CREDS, protocol=protocol)
 
-    sess = arcomm.Session(HOST, creds=OPS_CREDS)
-    sess.connect()
-    cloned = sess.clone('other', creds=('admin', 'none'))
+    with pytest.raises(arcomm.exceptions.AuthenticationFailed):
+        sess.clone(creds=('leet', 'hacker'))
 
-    assert cloned.hostname != sess.hostname
-    assert cloned._conn != sess._conn
+    sess.clone()
+
+    # assert cloned.hostname != sess.hostname
+    # assert cloned._conn != sess._conn
 
 def test_oldway_funcs():
 
