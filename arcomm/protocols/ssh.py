@@ -177,7 +177,7 @@ class Ssh(BaseProtocol):
         except socket.timeout as exc:
             raise ConnectFailed(str(exc))
         except IOError as exc:
-            raise ConnectFailed("{}: {}".format(exc[0], exc[1]))
+            raise ConnectFailed(str(exc))
 
         # we must invoke a shell, otherwise session commands like 'enable',
         # 'terminal width', etc. won't stick
