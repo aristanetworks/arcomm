@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from getpass import getpass
+import copy
 import importlib
 import re
 import time
@@ -124,7 +125,8 @@ class BaseSession(object):
         if not hostname:
             hostname = self.hostname
 
-        params = dictmerge(self.params, kwargs)
+        _params = copy.copy(self.params)
+        params = dictmerge(_params, kwargs)
 
         cloned = Session(hostname, **params)
         cloned.connect()
