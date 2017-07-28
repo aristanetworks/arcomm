@@ -45,6 +45,8 @@ pip3.6 install requests
 # pip3 install ipython jupyter pandas
 # pip3 install Sphinx
 
+pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+
 cd /vagrant; python3.6 setup.py develop
 # exit
 
