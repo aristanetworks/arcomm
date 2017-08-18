@@ -100,7 +100,7 @@ class HttpsTransport(HttpTransport):
 
 def _format_commands(commands):
     """converts commands to Eapi formatted dicts"""
-
+    #print(commands)
     formatted = []
     for command in commands:
         answer = command.answer or ''
