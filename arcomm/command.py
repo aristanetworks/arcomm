@@ -35,11 +35,15 @@ class Command(collections.MutableMapping):
             prompt = cmd.get("prompt")
             answer = cmd.get("answer", cmd.get('input', ''))
             cmd = cmd.get("cmd", cmd.get('command'))
-        #print(type(cmd), isinstance(cmd, str))
-        assert isinstance(cmd, basestring), "cmd must be a string"
+
+        if not isinstance(cmd, basestring):
+            raise ValueError("'cmd' must be a string")
+
+        prompt = to_list(prompt)
+        answer = to_list(answer)
 
         self._store = dict()
-        self.update(dict(cmd=cmd, prompt=to_list(prompt), answer=answer))
+        self.update(dict(cmd=cmd, prompt=prompt, answer=answer))
 
     def __getitem__(self, key):
         return self._store[key]
@@ -60,6 +64,7 @@ class Command(collections.MutableMapping):
     def cmd(self):
         """Returns command sting"""
         return self._store.get('cmd')
+
     expression = command = cmd
 
     @property
