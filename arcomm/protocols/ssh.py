@@ -118,12 +118,6 @@ class Ssh(BaseProtocol):
         if prompt is None or answer is None:
             return
 
-        if not hasattr(prompt, "__iter__"):
-            prompt = [prompt]
-
-        if not hasattr(answer, "__iter__"):
-            answer = [answer]
-
         if len(prompt) != len(answer):
             raise ValueError(("Lists of prompts and answers have different"
                               "lengths"))
