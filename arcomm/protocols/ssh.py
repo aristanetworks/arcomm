@@ -118,11 +118,19 @@ class Ssh(BaseProtocol):
         if prompt is None or answer is None:
             return
 
+        re_type = type(re.compile(r'^$'))
+
+        prompt = to_list(prompt)
+        answer = to_list(answer)
+        print(prompt, answer)
         if len(prompt) != len(answer):
-            raise ValueError(("Lists of prompts and answers have different"
+            raise ValueError(("Lists of prompts and answers have different "
                               "lengths"))
 
         for _prompt, _answer in zip(prompt, answer):
+            if not isinstance(_prompt, re_type):
+                _prompt = re.compile(_prompt)
+
             match = _prompt.search(response)
             if match:
                 self._channel.send(_answer + '\r')
