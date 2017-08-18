@@ -253,7 +253,18 @@ def test_send_timeout(protocol):
         response = conn.execute(["bash timeout 15 sleep 10"], timeout=1)
         response.raise_for_error()
 
+def test_eapi_commands():
+    c = arcomm.connect(HOST, creds=ARCOMM_CREDS, protocol='eapi+http')
+    r = c.execute("show version")
 
+    cmd = arcomm.Command({'cmd': 'show version', 'prompt': r'password',
+        'answer': 'nonya'})
+    r = c.execute(cmd)
+
+    cmd = arcomm.Command({'cmd': 'show version', 'prompt': [r'password', r'password'],
+        'answer': ['nonya', 'business']})
+
+    r = c.execute(cmd)
 # def test_secrets(request):
 #
 #     # create a temporary secrets file

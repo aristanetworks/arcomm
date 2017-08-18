@@ -39,9 +39,6 @@ class Command(collections.MutableMapping):
         if not isinstance(cmd, basestring):
             raise ValueError("'cmd' must be a string")
 
-        prompt = to_list(prompt)
-        answer = to_list(answer)
-
         self._store = dict()
         self.update(dict(cmd=cmd, prompt=prompt, answer=answer))
 
