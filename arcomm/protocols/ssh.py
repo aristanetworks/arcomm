@@ -26,6 +26,7 @@ from arcomm.util import to_list
 
 try:
     import paramiko
+    from paramiko.ssh_exception import SSHException
 except ImportError:
     raise ProtocolException("paramiko is required for SSH connections")
 
@@ -176,9 +177,7 @@ class Ssh(BaseProtocol):
 
         except paramiko.AuthenticationException as exc:
             raise AuthenticationFailed(str(exc))
-        except socket.timeout as exc:
-            raise ConnectFailed(str(exc))
-        except IOError as exc:
+        except (socket.timeout, SSHException, IOError) as exc:
             raise ConnectFailed(str(exc))
 
         # we must invoke a shell, otherwise session commands like 'enable',
