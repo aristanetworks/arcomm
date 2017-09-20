@@ -54,6 +54,15 @@ class Response(object):
         """return the data from the response as a string"""
         return str(self.output)
 
+    def to_dict(self):
+        return {
+            "command": self.command.to_dict(),
+            "output": self.output,
+            "errored": self.errored
+        }
+
+
+
 class ResponseStore(object):
     """List-like object for storing responses"""
 
@@ -87,7 +96,11 @@ class ResponseStore(object):
         yaml.append('commands:')
 
         for r in self:
-            yaml.append('  - command: {}'.format(r.command))
+            yaml.append('  - command: {}'.format(r.command.cmd))
+            if r.command.prompt:
+                yaml.append('  - prompt: {}'.format(r.command.prompt))
+            if r.command.answer:
+                yaml.append('  - answer: {}'.format(r.commands.answer))
             yaml.append('    output: |')
             yaml.append(indentblock(r.output, spaces=6))
 
@@ -97,10 +110,8 @@ class ResponseStore(object):
         result = {'host': self.host, 'status': self.status, 'commands': []}
 
         for response in self:
-            result['commands'].append({
-                'command': response.command,
-                'output': response.output
-            })
+
+            result['commands'].append(response.to_dict())
 
         return json.dumps(result, indent=4, separators=(',', ': '))
 
@@ -145,7 +156,7 @@ class ResponseStore(object):
         """filter responses to those commands that match the pattern"""
         filtered = []
         for response in self._store:
-            if re.search(value, str(response.command), re.I):
+            if re.search(value, str(response.command.cmd), re.I):
                 filtered.append(response)
         return filtered
 

@@ -154,7 +154,7 @@ class BaseSession(object):
             for item in zip(commands, responses):
                 command, response = item
 
-                store.append((command.cmd, response))
+                store.append((command, response))
 
         except ExecuteFailed as exc:
             store.append(Response(exc.command, str(exc), errored=True))
