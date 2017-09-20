@@ -100,7 +100,7 @@ class ResponseStore(object):
             if r.command.prompt:
                 yaml.append('  - prompt: {}'.format(r.command.prompt))
             if r.command.answer:
-                yaml.append('  - answer: {}'.format(r.commands.answer))
+                yaml.append('  - answer: {}'.format(r.command.answer))
             yaml.append('    output: |')
             yaml.append(indentblock(r.output, spaces=6))
 
