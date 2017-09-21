@@ -80,7 +80,7 @@ class Command(collections.MutableMapping):
         return self.cmd
 
     def __repr__(self):
-        return str(self.to_dict)
+        return str(self.to_dict())
 
     def to_dict(self):
         return dict(cmd=self.cmd, prompt=self.prompt, answer=self.answer)
