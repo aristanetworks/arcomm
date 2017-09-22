@@ -148,16 +148,12 @@ class BaseSession(object):
 
         commands = commands_from_list(commands)
 
-        try:
-            responses = self._conn.send(commands, **kwargs)
+        responses, status, message = self._conn.send(commands, **kwargs)
 
-            for item in zip(commands, responses):
-                command, response = item
+        for item in responses:
+            command, response, errored = item
 
-                store.append((command, response))
-
-        except ExecuteFailed as exc:
-            store.append(Response(exc.command, str(exc), errored=True))
+            store.append(Response(command, response, errored))
 
         return store
 

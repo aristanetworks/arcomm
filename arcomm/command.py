@@ -80,7 +80,11 @@ class Command(collections.MutableMapping):
         return self.cmd
 
     def __repr__(self):
-        return str(self.to_dict())
+        return str(self.to_dict()) #self.cmd
 
     def to_dict(self):
-        return dict(cmd=self.cmd, prompt=self.prompt, answer=self.answer)
+        prompt = self.prompt
+        if type(prompt) == type(re.compile('^$')):
+            prompt = self.prompt.pattern
+
+        return dict(cmd=self.cmd, prompt=prompt, answer=self.answer)

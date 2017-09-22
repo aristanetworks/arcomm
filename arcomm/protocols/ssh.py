@@ -12,6 +12,7 @@ import json
 import re
 import socket
 import time
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -123,7 +124,7 @@ class Ssh(BaseProtocol):
 
         prompt = to_list(prompt)
         answer = to_list(answer)
-        print(prompt, answer)
+
         if len(prompt) != len(answer):
             raise ValueError(("Lists of prompts and answers have different "
                               "lengths"))
@@ -200,6 +201,9 @@ class Ssh(BaseProtocol):
         """Send a series of commands to the device"""
         responses = []
 
+        # 0 if all goes well.  set to 1 on error
+        status_code = 0
+
         timeout = kwargs.get('timeout')
 
         # temporarily set channel timeout.  ExitStack will restore the original
@@ -210,11 +214,21 @@ class Ssh(BaseProtocol):
                 stack.callback(self._channel.settimeout, self._timeout)
                 self._channel.settimeout(timeout)
 
-            for command in commands:
-                response = self._send(command)
-                responses.append(response)
 
-        return responses
+            for command in commands:
+                errored = None
+                response = None
+                if status_code == 0:
+                    try:
+                        response = self._send(command)
+                    except ExecuteFailed as exc:
+                        response = str(exc)
+                        errored = True
+                        status_code = 1
+                        status_message = response
+                responses.append([command, response, errored])
+
+        return responses, status_code, ""
 
     def _send(self, command):
         """Sends a command to the remote device and returns the response"""
@@ -226,7 +240,7 @@ class Ssh(BaseProtocol):
         self._channel.sendall(str(command) + '\r')
         # wait for channel to be recv_ready (only seems to be a problem in py3)
         while not self._channel.recv_ready():
-            #print("waiting for channel to be recv_ready...")
+            # waiting for channel to be recv_ready...
             time.sleep(.01)
 
         while True:
