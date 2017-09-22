@@ -16,7 +16,9 @@ import warnings
 
 from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
+from arcomm.util import zipnpad
 from arcomm.command import Command
+from arcomm.response import Response
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 class BaseTransport(object):
@@ -145,11 +147,15 @@ class Eapi(BaseProtocol):
 
     def send(self, commands, **kwargs):
 
-        results = []
-
         encoding = kwargs.get('encoding', 'text')
         timestamps = kwargs.get('timestamps', False)
         timeout = kwargs.get('timeout', None)
+
+        results = []
+        status_code = 0
+        status_message = None
+        result = None
+
         if self._authorize:
             commands = [self._authorize] + commands
 
@@ -167,23 +173,33 @@ class Eapi(BaseProtocol):
         data = response.json()
 
         if 'error' in data:
-            err_code = data['error']['code']
-            err_msg = data['error']['message']
-            data = data['error']['data']
-            raise ExecuteFailed("[{}] {}".format(err_code, err_msg))
+            status_code = data['error']['code']
+            status_message = data['error']['message']
+            result = data['error']['data']
+        else:
+            result = data['result']
 
-        for item in data['result']:
-            if encoding == 'text':
-                output = item['output']
-            else:
-                output = item
+        for command, result in zipnpad(commands, result):
+            errored = None
+            output = None
 
-            results.append(output)
+            if result:
+                if encoding == 'text':
+                    output = result['output']
+                else:
+                    output = result
+
+                if 'errors' in result:
+                    errored = True
+                else:
+                    errored = False
+
+            results.append([command, output, errored])
 
         if len(results) > 1 and self._authorize:
             results.pop(0)
 
-        return results
+        return (results, status_code, status_message)
 
     def authorize(self, password, username):
         self._authorize = Command({'cmd': 'enable', 'input': password})

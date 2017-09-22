@@ -9,6 +9,7 @@ import json
 import re
 import time
 import yaml
+import arcomm
 from arcomm.util import to_list, indentblock
 from arcomm.exceptions import ExecuteFailed
 
@@ -33,7 +34,7 @@ def get_subscribers():
 class Response(object):
     """Store a single response"""
 
-    def __init__(self, command, output, errored=False):
+    def __init__(self, command, output, errored=None):
 
         self.command = command
         self.output = output
@@ -91,12 +92,27 @@ class ResponseStore(object):
         yaml.append('commands:')
 
         for r in self:
-            yaml.append('  - command: {}'.format(r.command.cmd))
-            if r.command.prompt:
-                yaml.append('  - prompt: {}'.format(r.command.prompt))
-            if r.command.answer:
-                yaml.append('  - answer: {}'.format(r.command.answer))
+
+            if isinstance(r.command, arcomm.Command):
+                yaml.append('  - command: {}'.format(r.command.cmd))
+                if r.command.prompt:
+                    yaml.append('    prompt: {}'.format(r.command.prompt))
+                if r.command.answer:
+                    yaml.append('    answer: {}'.format(r.command.answer))
+
+            else:
+                yaml.append('  - command: {}'.format(r.command))
+
+            if r.errored is None:
+                status = 'nil'
+            elif r.errored:
+                status = 'failed'
+            else:
+                status = 'ok'
+
+            yaml.append('    status: {}'.format(status))
             yaml.append('    output: |')
+
             yaml.append(indentblock(r.output, spaces=6))
 
         return '\n'.join(yaml)

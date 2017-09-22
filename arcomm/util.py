@@ -130,3 +130,16 @@ def mpop(lst, length, offset=0):
         # always pop from offset.
         popped.append(lst.pop(offset))
     return popped
+
+def zipnpad(keys, values, default=None):
+    """zips two lits and pads the second to match the first"""
+
+    keys_len = len(keys)
+    values_len = len(values)
+
+    if (keys_len < values_len):
+        raise ValueError("keys must be as long or longer than values")
+
+    values += [default] * (keys_len - values_len)
+    
+    return zip(keys, values)
