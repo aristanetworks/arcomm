@@ -164,7 +164,6 @@ class Eapi(BaseProtocol):
                                        encoding=encoding,
                                        timestamps=timestamps,
                                        timeout=timeout)
-
         except (requests.HTTPError,
                 requests.ConnectionError,
                 requests.Timeout) as exc:
@@ -175,7 +174,7 @@ class Eapi(BaseProtocol):
         if 'error' in data:
             status_code = data['error']['code']
             status_message = data['error']['message']
-            result = data['error']['data']
+            result = data['error'].get("data", [])
         else:
             result = data['result']
 
