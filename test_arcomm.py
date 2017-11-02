@@ -20,11 +20,7 @@ HOST = os.environ.get('ARCOMM_HOST', 'veos')
 
 @pytest.fixture(scope='module', autouse=True) #, params=['eapi+http', 'ssh'])
 def protocol(request):
-    protocol = os.environ.get('ARCOMM_DEFAULT_PROTOCOL', 'mock')
-
-    arcomm.env.ARCOMM_DEFAULT_PROTOCOL = protocol
-
-    return protocol
+    return arcomm.env.ARCOMM_DEFAULT_PROTOCOL
 
 def test_entry():
 
@@ -73,11 +69,8 @@ def test_execute_invalid_command(protocol):
 
 def test_execute_not_authorized(protocol):
 
-    with pytest.raises(arcomm.AuthorizationFailed):
-        arcomm.execute(HOST, ['show restricted'], authorize=('bad', 'bad'))
-
-    response = arcomm.execute(HOST, ['show restricted'])
-    assert response.status == 'failed' and 'not authorized' in str(response)
+    response = arcomm.execute(HOST, ['show running-config'], creds=OPS_CREDS)[0]
+    assert response.errored and 'privileged mode required' in response.output
 
 def test_authorize(protocol):
     response = arcomm.execute(HOST, ['show running-config'], creds=OPS_CREDS,
@@ -86,7 +79,7 @@ def test_authorize(protocol):
 def test_response_store_access():
     responses = arcomm.execute(HOST, ['show version'])
     assert hasattr(responses, '__iter__'), "response must be an iterable"
-    assert responses.last().command == 'show version', \
+    assert str(responses.last().command) == 'show version', \
         "Last item should have been 'show version'"
 
     for r in responses:
@@ -96,7 +89,7 @@ def test_response_store_access():
 def test_background(protocol):
 
     did_stuff = False
-    with arcomm.background(HOST, ['show version'],
+    with arcomm.background([HOST], ['show version'],
                            protocol=protocol) as proc:
         did_stuff = True
 
@@ -130,11 +123,11 @@ def test_tap():
         #print result
         bob.was_here = True
 
-    result = arcomm.tap(callback, arcomm.execute, 'veos', 'show version')
+    result = arcomm.tap(callback, arcomm.execute, HOST, 'show version')
     assert hasattr(bob, 'was_here')
 
 def test_clone(protocol):
-    print(HOST, ARCOMM_CREDS)
+
     sess = arcomm.connect(HOST, creds=ARCOMM_CREDS, protocol=protocol)
 
     with pytest.raises(arcomm.exceptions.AuthenticationFailed):
@@ -263,11 +256,6 @@ def test_commands(protocol):
 
     cmd = arcomm.Command({'cmd': 'show version', 'prompt': r'password',
         'answer': 'nonya'})
-    r = c.execute(cmd)
-
-    cmd = arcomm.Command({'cmd': 'show version', 'prompt': [r'password', r'password'],
-        'answer': ['nonya', 'business']})
-
     r = c.execute(cmd)
 
 # def test_secrets(request):
