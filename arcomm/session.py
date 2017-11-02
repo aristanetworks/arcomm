@@ -47,13 +47,18 @@ class BaseSession(object):
     def __init__(self, endpoint, **kwargs):
         # connection object returned by the protocol adapter
         self._conn = None
+
         # true if session is authorized (enabled)
         self.authorized = False
 
         self.params = kwargs
 
+        # save original endpoint
+        self.endpoint = endpoint
+
         endpoint = parse_endpoint(endpoint)
 
+        # extracted host from endpoint uri
         self.hostname = endpoint['hostname']
 
         # handle creds
@@ -109,6 +114,10 @@ class BaseSession(object):
             creds = BasicCreds(*creds)
         return creds
 
+    @property
+    def connected(self):
+        return True if self._conn else False
+
     def connect(self): #, uri, **kwargs):
         """Connect to the remote host"""
 
@@ -140,6 +149,9 @@ class BaseSession(object):
 
     def send(self, commands, **kwargs):
         """send commands"""
+
+        if not self.connected:
+            self.connect()
 
         store = ResponseStore(host=self.hostname)
 
