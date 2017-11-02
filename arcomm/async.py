@@ -1,86 +1,61 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-
-import multiprocessing
-import time
+import multiprocessing as mp
+import arcomm
 import signal
 import sys
+import time
 import traceback
-
-from arcomm.session import Session
-from arcomm.exceptions import (ExecuteFailed, ConnectFailed,
-                               AuthenticationFailed, AuthorizationFailed)
-from arcomm.response import ResponseStore, Response
-from arcomm.util import to_list
 
 def _prep_worker():
     """Tell workers to ignore interrupts"""
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def _worker(host, commands, **kwargs):
-    """Common worker func. Logs into remote host, executes commands and puts
-    the results in the queue. Called from `Pool` and `Background`"""
+def _worker(endpoint, commands, **kwargs):
 
-    responses = None
     try:
-        with Session(host, **kwargs) as sess:
-
-            authorize = kwargs.pop('authorize', None)
-
-            if authorize:
-                sess.authorize(authorize)
-
-            responses = sess.execute(commands, **kwargs)
-
-    except (ConnectFailed,
-            AuthenticationFailed,
-            AuthorizationFailed) as exc:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        repr_ = "\n".join(traceback.format_exception(exc_type, exc_value,
-                         exc_traceback))
-
+        responses = arcomm.execute(endpoint, commands, **kwargs)
+    except (arcomm.AuthenticationFailed, arcomm.AuthorizationFailed):
         # if we get kicked out of the session... we have to make our own
         # response object... :(
-        responses = ResponseStore(host, **kwargs)
-        responses.append(Response('_authentication', repr_, errored=True))
+        exc_type, exc_value, _ = sys.exc_info()
+        err_type = exc_type.__name__
+        error = "[{}] {}".format(err_type, exc_value)
+        response = arcomm.Response("!" + err_type.lower(), error, errored=True)
+        responses = arcomm.ResponseStore(endpoint, **kwargs)
+        responses.append(response)
 
     return responses
 
-class Pool(object):
-    """
-    """
 
-    def __init__(self, endpoints, commands, size=10, delay=0, **kwargs):
+class Pool:
+    """Creates a pool of hosts on which to run a certain set of commands
+    asynchronously"""
 
-        #
-        self._endpoints = to_list(endpoints)
+    def __init__(self, sessions, commands=[], processes=None, delay=0, **kwargs):
 
-        #
-        self._commands = commands
+        self._processes = processes
 
-        #
-        self._pool_size = size
-
-        #
+        # delay the return of start- give slower sessions time to initialize
         self._delay = delay
 
-        #
-        self._worker_kwargs = kwargs
+        # commands to be executed on each session
+        self._commands = commands
 
-        #
+        self._session_defaults = kwargs
+
+        self._sessions = []
+        self.load_sessions(sessions)
+
         self._results = []
 
-        # initialize pool
-        self._pool = multiprocessing.Pool(self._pool_size, _prep_worker)
+        self._pool = mp.Pool(self._processes) # , _prep_worker)
 
     def __enter__(self):
         self.start()
         return self
 
     def __exit__(self, type, value, traceback):
-        #self.join()
+        self.close()
+        self.join()
         pass
 
     def __iter__(self):
@@ -88,32 +63,71 @@ class Pool(object):
             yield item.get()
 
     @property
+    def size(self):
+        return self._size
+
+    @property
+    def delay(self):
+        return self._delay
+
+    @property
+    def sessions(self):
+        return self._sessions
+
+
+    @property
     def results(self):
-        """Returns the results queue"""
         return self._results
 
-    def run(self, **kwargs):
-        """Run commands on the hosts, blocks until are tasks are completed"""
-        self.start(**kwargs)
-        self.join()
+    def load_sessions(self, sessions):
 
-    def start(self): #, delay=0, background=False, sleep=0):
-        """Run through host is the pool aysnchronously.  If sleep is > 0, start
-        will wait for specified noumber of seconds before returning."""
+        for session in sessions:
+            params = {}
+            if isinstance(session, (tuple, list)):
+                session, params = session
 
-        for host in self._endpoints:
-            args = [host, self._commands]
-            result = self._pool.apply_async(_worker, args, self._worker_kwargs)
+            self.add_session(session, **params)
+
+    def add_session(self, endpoint, **kwargs):
+
+        params = kwargs.copy()
+        params.update(self._session_defaults)
+        self._sessions.append((endpoint, params))
+
+    def start(self):
+
+        for endpoint, params in self._sessions:
+            args = (endpoint, self._commands)
+
+            result = self._pool.apply_async(_worker, args, params)
             self._results.append(result)
-
-        self._pool.close()
 
         time.sleep(self._delay)
 
     def join(self):
         self._pool.join()
 
+    def close(self):
+        self._pool.close()
+
     def kill(self):
         """Terminate the pool and empty the queue"""
 
         self._pool.terminate()
+
+
+def main():
+
+    import arcomm
+    with Pool(
+        [('192.168.56.11', dict(creds=('bob', ''), protocol='eapi+http')),
+        ('192.168.56.12', dict(creds=('admin', ''), protocol='eapi+http'))],
+        ["show version", "show clock"]
+    ) as p:
+        for r in p:
+            print(r)
+
+
+
+if __name__ == '__main__':
+    main()
