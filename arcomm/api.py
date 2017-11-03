@@ -61,6 +61,8 @@ def background(endpoints, commands, **kwargs):
               System MAC address:  0800.2776.48c5
               [ ...output omitted... ]
     """
+
+    endpoints = to_list(endpoints)
     return Pool(endpoints, commands, **kwargs)
 
 def batch(endpoints, commands, **kwargs):
@@ -78,6 +80,7 @@ def batch(endpoints, commands, **kwargs):
         ...     print(res.to_yaml())
     """
 
+    endpoints = to_list(endpoints)
     with Pool(endpoints, commands, **kwargs) as pool:
         try:
             for item in pool.results:
