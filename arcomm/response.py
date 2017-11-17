@@ -62,8 +62,6 @@ class Response(object):
             "errored": self.errored
         }
 
-
-
 class ResponseStore(object):
     """List-like object for storing responses"""
 
@@ -104,13 +102,11 @@ class ResponseStore(object):
                 yaml.append('  - command: {}'.format(r.command))
 
             if r.errored is None:
-                status = 'nil'
-            elif r.errored:
-                status = 'failed'
+                errored = 'skipped'
             else:
-                status = 'ok'
+                errored = 'failed' if r.errored else 'ok'
 
-            yaml.append('    status: {}'.format(status))
+            yaml.append('    status: {}'.format(errored))
             yaml.append('    output: |')
 
             yaml.append(indentblock(r.output, spaces=6))
