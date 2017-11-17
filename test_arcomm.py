@@ -171,6 +171,7 @@ def test_raise_for_error(protocol):
         response.raise_for_error()
 
 called_back = False
+
 def test_callback(protocol):
 
     def _cb(response):

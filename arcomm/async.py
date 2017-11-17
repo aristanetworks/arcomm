@@ -112,12 +112,10 @@ class Pool:
 
     def kill(self):
         """Terminate the pool and empty the queue"""
-
         self._pool.terminate()
 
 
 def main():
-
     import arcomm
     with Pool(
         [('192.168.56.11', dict(creds=('bob', ''), protocol='eapi+http')),
@@ -126,8 +124,6 @@ def main():
     ) as p:
         for r in p:
             print(r)
-
-
 
 if __name__ == '__main__':
     main()
