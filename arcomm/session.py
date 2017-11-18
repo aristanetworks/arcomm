@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
 from __future__ import (absolute_import, division, print_function,
@@ -18,7 +17,6 @@ from arcomm.response import ResponseStore, Response
 from arcomm.credentials import BasicCreds
 from arcomm.exceptions import ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
-#from urlparse import urlparse
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.parse import urlparse
@@ -27,14 +25,14 @@ def _load_protocol_adapter(name):
     """Load protocol module from name"""
 
     package = None
-    if __name__ == '__main__':
-        package = 'arcomm'
+    if __name__ == "__main__":
+        package = "arcomm"
     else:
-        package, _ = __name__.split('.', 1)
+        package, _ = __name__.split(".", 1)
 
-    path = '.'.join((package, 'protocols', name))
+    path = ".".join((package, "protocols", name))
     module = importlib.import_module(path)
-    class_ = re.sub(r'_', '', name.title())
+    class_ = re.sub(r"_", "", name.title())
 
     # Finally, we retrieve the Class
     return getattr(module, class_)
@@ -59,57 +57,50 @@ class BaseSession(object):
         endpoint = parse_endpoint(endpoint)
 
         # extracted host from endpoint uri
-        self.hostname = endpoint['hostname']
+        self.hostname = endpoint["hostname"]
 
         # handle creds
-        if endpoint['username']:
-            password = endpoint['password']
+        if endpoint["username"]:
+            password = endpoint["password"]
             if password is None:
                 password = ""
-            creds = (endpoint['username'], password)
+            creds = (endpoint["username"], password)
         else:
-            creds = (self.params.get('creds', None)
+            creds = (self.params.get("creds", None)
                 or (env.ARCOMM_DEFAULT_USERNAME, env.ARCOMM_DEFAULT_PASSWORD))
 
-        if self.params.get('askpass'):
+        if self.params.get("askpass"):
             password = getpass("{}@{}'s password:".format(creds[0], self.hostname))
             creds = (creds[0], password)
 
-        self.params['creds'] = self._handle_creds(creds)
+        self.params["creds"] = self._handle_creds(creds)
 
         # handle protocol and transport
-        protocol = (endpoint['protocol'] or self.params.get('protocol')
+        protocol = (endpoint["protocol"] or self.params.get("protocol")
                     or env.ARCOMM_DEFAULT_PROTOCOL)
 
-        if '+' in protocol:
-            protocol, transport = protocol.split('+', 1)
-            self.params['transport'] = transport
+        if "+" in protocol:
+            protocol, transport = protocol.split("+", 1)
+            self.params["transport"] = transport
 
-        self.params['protocol'] = protocol
+        self.params["protocol"] = protocol
         self._protocol_adapter = _load_protocol_adapter(protocol)
 
     def __enter__(self):
-        """
-        """
         self.connect()
         return self
 
     def __exit__(self, *args):
-        """
-        """
-
         self.close()
 
     def __str__(self):
         return str(self.__dict__)
 
     def __repr__(self):
-        return '<{} [{}]>'.format(self.__class__.__name__,
+        return "<{} [{}]>".format(self.__class__.__name__,
                                   isinstance(self._conn, BaseProtocol))
 
     def _handle_creds(self, creds):
-        """
-        """
         if isinstance(creds, (tuple, list)):
             creds = BasicCreds(*creds)
         return creds
@@ -119,12 +110,10 @@ class BaseSession(object):
         return True if self._conn else False
 
     def connect(self): #, uri, **kwargs):
-        """Connect to the remote host"""
-
         self._conn = self._protocol_adapter()
         self._conn.connect(self.hostname, **self.params)
 
-    def authorize(self, password='', username=None):
+    def authorize(self, password="", username=None):
         self._conn.authorize(password, username)
         self.authorized = (password, username)
 
@@ -142,21 +131,19 @@ class BaseSession(object):
         return cloned
 
     def close(self):
-        if hasattr(self._conn, 'close'):
+        if hasattr(self._conn, "close"):
             self._conn.close()
 
         self._conn = None
 
     def send(self, commands, **kwargs):
-        """send commands"""
-
         if not self.connected:
             self.connect()
 
         store = ResponseStore(host=self.hostname)
 
-        if 'callback' in kwargs:
-            store.subscribe(kwargs['callback'])
+        if "callback" in kwargs:
+            store.subscribe(kwargs["callback"])
 
         commands = commands_from_list(commands)
 
@@ -178,9 +165,9 @@ class UntilMixin(object):
         (in seconds) is exceeded. If 'exclude' is set this function will return
         only if the string is _not_ present"""
 
-        timeout = kwargs.pop('timeout', None) or env.ARCOMM_DEFAULT_TIMEOUT
-        sleep = kwargs.pop('sleep', None) or 1
-        exclude = kwargs.pop('exclude', False)
+        timeout = kwargs.pop("timeout", None) or env.ARCOMM_DEFAULT_TIMEOUT
+        sleep = kwargs.pop("sleep", None) or 1
+        exclude = kwargs.pop("exclude", False)
 
         start_time = time.time()
         check_time = start_time
