@@ -259,6 +259,20 @@ def test_commands(protocol):
         'answer': 'nonya'})
     r = c.execute(cmd)
 
+batch_called_back = False
+
+def test_batch_callback():
+    def _cb(response):
+        global batch_called_back
+        assert isinstance(response, arcomm.response.ResponseStore)
+        batch_called_back = 'test_batch_called_back'
+
+    response = arcomm.batch([HOST], ["configure", "hostname veos-01"], callback=_cb)
+    for r in response:
+        pass
+
+    assert batch_called_back == 'test_batch_called_back'
+
 # def test_secrets(request):
 #
 #     # create a temporary secrets file

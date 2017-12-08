@@ -30,12 +30,15 @@ class Pool:
     """Creates a pool of hosts on which to run a certain set of commands
     asynchronously"""
 
-    def __init__(self, sessions, commands=[], processes=None, delay=0, **kwargs):
+    def __init__(self, sessions, commands=[], callback=None, processes=None,
+                 delay=0, **kwargs):
 
         self._processes = processes
 
         # delay the return of start- give slower sessions time to initialize
         self._delay = delay
+
+        self._callback = callback
 
         # commands to be executed on each session
         self._commands = commands
@@ -98,8 +101,8 @@ class Pool:
 
         for endpoint, params in self._sessions:
             args = (endpoint, self._commands)
-
-            result = self._pool.apply_async(_worker, args, params)
+            result = self._pool.apply_async(_worker, args, params,
+                                            callback=self._callback)
             self._results.append(result)
 
         time.sleep(self._delay)
@@ -113,17 +116,3 @@ class Pool:
     def kill(self):
         """Terminate the pool and empty the queue"""
         self._pool.terminate()
-
-
-def main():
-    import arcomm
-    with Pool(
-        [('192.168.56.11', dict(creds=('bob', ''), protocol='eapi+http')),
-        ('192.168.56.12', dict(creds=('admin', ''), protocol='eapi+http'))],
-        ["show version", "show clock"]
-    ) as p:
-        for r in p:
-            print(r)
-
-if __name__ == '__main__':
-    main()
