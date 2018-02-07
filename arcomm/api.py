@@ -186,8 +186,8 @@ def clone(connection, endpoint=None, **kwargs):
 
     return connection.clone(endpoint, **kwargs)
 
-def monitor(connection, func):
-    pass
+# def monitor(connection, func):
+#     pass
 
 def close(connection):
     """Close the connection"""
