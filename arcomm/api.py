@@ -138,9 +138,11 @@ def creds(username, password="", **kwargs):
 # old name
 get_credentials = creds
 
-def execute(endpoint, commands, **kwargs):
+def execute(endpoint, commands, creds=("admin", ""), protocol=None,
+            authorize=None, **kwargs):
     """Send exec commands
 
+    :param authorize: enter enable mode
     :param endpoint: remote host or URI to connect to
     :param commands: command or commands to send
     :param creds: (optional) :class:`Creds <Creds>` object with authentication
@@ -151,21 +153,16 @@ def execute(endpoint, commands, **kwargs):
         >>> arcomm.configure('eapi://veos', ['show version'])
         <ResponseStore [ok]>
     """
-    authorize = kwargs.pop('authorize', None)
 
     # allow an existing session to be used
     if not isinstance(endpoint, BaseSession):
-        sess = Session(endpoint, **kwargs)
+        sess = Session(endpoint, creds=creds, protocol=protocol, **kwargs)
         sess.connect()
     else:
         sess = endpoint
 
-    if authorize:
-        if hasattr(authorize, '__iter__'):
-            username, password = authorize[0], authorize[1]
-        else:
-            username, password = ('', authorize)
-        sess.authorize(password, username)
+    if authorize is not None:
+        sess.authorize(authorize, None)
 
     response = sess.send(commands,  **kwargs)
 
@@ -180,7 +177,6 @@ def tap(callback, func, *args, **kwargs):
     return result
 
 def clone(connection, endpoint=None, **kwargs):
-
 
     return connection.clone(endpoint, **kwargs)
 
