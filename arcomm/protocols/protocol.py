@@ -24,5 +24,5 @@ class BaseProtocol(with_metaclass(abc.ABCMeta, object)):
         pass
 
     @abc.abstractmethod
-    def authorize(self, password, username):
+    def authorize(self, password, username=None):
         pass

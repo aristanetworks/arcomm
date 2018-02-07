@@ -144,7 +144,7 @@ class Ssh(BaseProtocol):
             if match:
                 return True
 
-    def authorize(self, password, username):
+    def authorize(self, password, username=None):
         """Authorize the session"""
         command = Command('enable', prompt=self._password_re, answer=password)
 
