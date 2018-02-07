@@ -115,16 +115,16 @@ def test_mixin_until():
             sess.execute_while(['show version'], condition=r'.*', timeout=5,
                                sleep=1)
 
-def test_tap():
-    class _Mark(object): pass
-
-    bob = _Mark()
-    def callback(result):
-        #print result
-        bob.was_here = True
-
-    result = arcomm.tap(callback, arcomm.execute, HOST, 'show version')
-    assert hasattr(bob, 'was_here')
+# def test_tap():
+#     class _Mark(object): pass
+#
+#     bob = _Mark()
+#     def callback(result):
+#         #print result
+#         bob.was_here = True
+#
+#     result = arcomm.tap(callback, arcomm.execute, HOST, 'show version')
+#     assert hasattr(bob, 'was_here')
 
 def test_clone(protocol):
 
@@ -225,16 +225,16 @@ def test_connect_timeout(protocol):
     with pytest.raises(arcomm.exceptions.ConnectFailed):
         conn = arcomm.connect("1.2.3.4", timeout=1, creds=creds, protocol=protocol)
 
-@pytest.mark.parametrize("protocol", [
-    ("eapi+http"),
-    ("ssh")
-])
-def test_session_timeout(protocol):
-    conn = arcomm.connect(HOST, timeout=5, creds=ARCOMM_CREDS, protocol=protocol)
-
-    with pytest.raises(arcomm.exceptions.ExecuteFailed):
-        response = conn.execute(["bash timeout 15 sleep 10"])
-        response.raise_for_error()
+# @pytest.mark.parametrize("protocol", [
+#     ("eapi+http"),
+#     ("ssh")
+# ])
+# def test_session_timeout(protocol):
+#     conn = arcomm.connect(HOST, timeout=5, creds=ARCOMM_CREDS, protocol=protocol)
+#
+#     with pytest.raises(arcomm.exceptions.ExecuteFailed):
+#         response = conn.execute(["bash timeout 15 sleep 10"])
+#         response.raise_for_error()
 
 @pytest.mark.parametrize("protocol", [
     ("eapi+http"),
