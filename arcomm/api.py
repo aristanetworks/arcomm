@@ -174,15 +174,13 @@ def execute(endpoint, commands, **kwargs):
 send = execute
 
 def tap(callback, func, *args, **kwargs):
-    """??? Experimentalizing ???"""
+    """What does this even accomplish..."""
     result = func(*args, **kwargs)
     callback(result)
     return result
 
 def clone(connection, endpoint=None, **kwargs):
 
-    # if timeout:
-    #     kwargs['timeout'] = timeout
 
     return connection.clone(endpoint, **kwargs)
 
