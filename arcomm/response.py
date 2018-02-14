@@ -84,6 +84,15 @@ class ResponseStore(object):
 
         return self.to_yaml()
 
+    def to_dict(self):
+        result = {'host': self.host, 'status': self.status, 'commands': []}
+
+        for response in self:
+
+            result['commands'].append(response.to_dict())
+
+        return result
+
     def to_yaml(self):
         yaml = ['host: {}'.format(self.host)]
         yaml.append('status: {}'.format(self.status))
@@ -114,13 +123,7 @@ class ResponseStore(object):
         return '\n'.join(yaml)
 
     def to_json(self):
-        result = {'host': self.host, 'status': self.status, 'commands': []}
-
-        for response in self:
-
-            result['commands'].append(response.to_dict())
-
-        return json.dumps(result, indent=4, separators=(',', ': '))
+        return json.dumps(self.to_dict(), indent=4, separators=(',', ': '))
 
     def __repr__(self):
         return '<{} [{}]>'.format(self.__class__.__name__, self.status)
