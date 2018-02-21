@@ -88,7 +88,7 @@ class Eapi(BaseProtocol):
                                          format=encoding,
                                          timestamps=timestamps,
                                          timeout=timeout)
-        except eapilib.EapiError as exc:
+        except eapi_.EapiError as exc:
             raise ExecuteFailed(str(exc))
 
         # if "error" in data:
