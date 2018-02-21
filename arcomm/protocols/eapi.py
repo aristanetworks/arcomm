@@ -8,10 +8,12 @@ from __future__ import (absolute_import, division, print_function,
 
 from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
-from arcomm.protocols import eapilib
 from arcomm.util import zipnpad
-
 from arcomm.command import Command
+
+import eapi as eapi_
+
+eapi_.SSL_WARNINGS = False
 
 def prepare_commands(commands):
     """converts commands to Eapi formatted dicts"""
@@ -53,21 +55,24 @@ class Eapi(BaseProtocol):
         if "verify" in kwargs:
             sess_args["verify"] = kwargs["verify"]
 
-        self._session = eapilib.Session(host, protocol=transport,
+        self._session = eapi_.Session(host, transport=transport,
                                         **sess_args)
 
         if self._session.auth:
             try:
                 self._session.login()
-            except eapilib.EapiAuthenticationFailure as exc:
+            except eapi_.EapiAuthenticationFailure as exc:
                 raise AuthenticationFailed(str(exc))
-            except eapilib.EapiError as exc:
+            except eapi_.EapiError as exc:
                 raise ConnectFailed(str(exc))
 
     def send(self, commands, **kwargs):
 
-        result = None
+        # result = None
         results = []
+
+        response = None
+
         status_code = 0
         status_message = None
 
@@ -79,31 +84,31 @@ class Eapi(BaseProtocol):
             commands = [self._authorize] + commands
 
         try:
-            data = self._session.execute(prepare_commands(commands),
+            response = self._session.execute(prepare_commands(commands),
                                          format=encoding,
                                          timestamps=timestamps,
                                          timeout=timeout)
         except eapilib.EapiError as exc:
             raise ExecuteFailed(str(exc))
 
-        if "error" in data:
-            status_code = data["error"]["code"]
-            status_message = data["error"]["message"]
-            result = data["error"].get("data", [])
-        else:
-            result = data["result"]
+        # if "error" in data:
+        #     status_code = data["error"]["code"]
+        #     status_message = data["error"]["message"]
+        #     result = data["error"].get("data", [])
+        # else:
+        #     result = data["result"]
 
-        for command, response in zipnpad(commands, result):
+        for command, data in zipnpad(commands, response.output):
             errored = None
             output = None
 
-            if result:
+            if data:
                 if encoding == "text":
-                    output = response["output"]
+                    output = data["output"]
                 else:
-                    output = response
+                    output = data
 
-                if "errors" in response:
+                if "errors" in data:
                     errored = True
                 else:
                     errored = False
