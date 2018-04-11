@@ -85,7 +85,7 @@ class Eapi(BaseProtocol):
 
         try:
             response = self._session.execute(prepare_commands(commands),
-                                         format=encoding,
+                                         encoding=encoding,
                                          timestamps=timestamps,
                                          timeout=timeout)
         except eapi_.EapiError as exc:
