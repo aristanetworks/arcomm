@@ -221,6 +221,7 @@ class Ssh(BaseProtocol):
                 if status_code == 0:
                     try:
                         response = self._send(command)
+                        errored = False
                     except ExecuteFailed as exc:
                         response = str(exc)
                         errored = True
