@@ -105,8 +105,15 @@ def test_batch(protocol):
     for res in pool:
         assert isinstance(res, arcomm.ResponseStore)
 
+def test_batch_until():
 
-def test_mixin_until():
+    pool = arcomm.batch([HOST, HOST], ['show clock'], condition=r'\:[0-5]0',
+                 timeout=30, sleep=.1)
+
+    for res in pool:
+        assert isinstance(res, arcomm.ResponseStore)
+
+def test_execute_until():
     with arcomm.Session(HOST, creds=ARCOMM_CREDS) as sess:
         sess.execute_until(['show clock'], condition=r'\:[0-5]0', timeout=30,
                            sleep=.1)
@@ -114,6 +121,8 @@ def test_mixin_until():
         with pytest.raises(ValueError):
             sess.execute_while(['show version'], condition=r'.*', timeout=5,
                                sleep=1)
+
+
 
 # def test_tap():
 #     class _Mark(object): pass
