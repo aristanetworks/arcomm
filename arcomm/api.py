@@ -11,7 +11,7 @@ import re
 import sys
 import time
 
-from arcomm.session import BaseSession, Session
+from arcomm.session import Session
 from arcomm.util import to_list
 from arcomm.async import Pool
 from arcomm.credentials import BasicCreds, mkcreds
@@ -155,7 +155,7 @@ def execute(endpoint, commands, creds=("admin", ""), protocol=None,
     """
 
     # allow an existing session to be used
-    if not isinstance(endpoint, BaseSession):
+    if not isinstance(endpoint, Session):
         sess = Session(endpoint, creds=creds, protocol=protocol, **kwargs)
         sess.connect()
     else:
