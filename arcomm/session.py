@@ -37,7 +37,7 @@ def _load_protocol_adapter(name):
     # Finally, we retrieve the Class
     return getattr(module, class_)
 
-class BaseSession(object):
+class Session(object):
     """
     Base Session
     """
@@ -136,7 +136,17 @@ class BaseSession(object):
 
         self._conn = None
 
-    def send(self, commands, **kwargs):
+    def _send(self, commands, **kwargs):
+
+        commands = commands_from_list(commands)
+
+        responses, status, message = self._conn.send(commands, **kwargs)
+
+        for item in responses:
+            command, response, errored = item
+            yield Response(command, response, errored)
+
+    def execute(self, commands, **kwargs):
         if not self.connected:
             self.connect()
 
@@ -145,32 +155,22 @@ class BaseSession(object):
         if "callback" in kwargs:
             store.subscribe(kwargs["callback"])
 
-        commands = commands_from_list(commands)
-
-        responses, status, message = self._conn.send(commands, **kwargs)
-
-        for item in responses:
-            command, response, errored = item
-
-            store.append(Response(command, response, errored))
-
+        for response in self._send(commands, **kwargs):
+            store.append(response)
         return store
 
-    execute = send
+    send = execute
 
-class UntilMixin(object):
-
-    def execute_until(self, commands, condition, **kwargs):
+    def execute_until(self, commands, condition, timeout, sleep=1, exclude=False, **kwargs):
         """Runs a command until a condition has been met or the timeout
         (in seconds) is exceeded. If 'exclude' is set this function will return
         only if the string is _not_ present"""
 
-        timeout = kwargs.pop("timeout", None) or env.ARCOMM_DEFAULT_TIMEOUT
-        sleep = kwargs.pop("sleep", None) or 1
-        exclude = kwargs.pop("exclude", False)
+        timeout = timeout or env.ARCOMM_DEFAULT_TIMEOUT
 
         start_time = time.time()
         check_time = start_time
+
         response = None
 
         while (check_time - timeout) < start_time:
@@ -189,9 +189,6 @@ class UntilMixin(object):
 
     def execute_while(self, commands, condition, **kwargs):
         self.execute_until(commands, condition, exclude=True, **kwargs)
-
-class Session(UntilMixin, BaseSession):
-    pass
 
 def session(*args, **kwargs):
     return Session(*args, **kwargs)
