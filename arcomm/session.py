@@ -144,19 +144,20 @@ class Session(object):
 
         for item in responses:
             command, response, errored = item
-            yield Response(command, response, errored)
+            yield (command, response, errored)
 
     def execute(self, commands, **kwargs):
         if not self.connected:
             self.connect()
 
-        store = ResponseStore(host=self.hostname)
+        #store = ResponseStore(host=self.hostname)
+        store = ResponseStore(session=self)
 
         if "callback" in kwargs:
             store.subscribe(kwargs["callback"])
 
         for response in self._send(commands, **kwargs):
-            store.append(response)
+            store.append(Response(store, *response))
         return store
 
     send = execute

@@ -11,17 +11,17 @@ def _prep_worker():
 
 def _worker(endpoint, commands, **kwargs):
 
+    session = arcomm.Session(endpoint)
     try:
-        responses = arcomm.execute(endpoint, commands, **kwargs)
+        responses = session.execute(commands, **kwargs)
     except (arcomm.AuthenticationFailed, arcomm.AuthorizationFailed):
         # if we get kicked out of the session... we have to make our own
         # response object... :(
         exc_type, exc_value, _ = sys.exc_info()
         err_type = exc_type.__name__
         error = "[{}] {}".format(err_type, exc_value)
-        response = arcomm.Response("!" + err_type.lower(), error, errored=True)
-        responses = arcomm.ResponseStore(endpoint, **kwargs)
-        responses.append(response)
+        responses = arcomm.ResponseStore(session, **kwargs)
+        responses.append(("!" + err_type.lower(), error, True))
 
     return responses
 

@@ -34,8 +34,9 @@ def get_subscribers():
 class Response(object):
     """Store a single response"""
 
-    def __init__(self, command, output, errored=None):
+    def __init__(self, parent, command, output, errored=None):
 
+        self.parent = parent
         self.command = command
         self.output = output
         self.errored = errored
@@ -65,10 +66,10 @@ class Response(object):
 class ResponseStore(object):
     """List-like object for storing responses"""
 
-    def __init__(self, host, **kwargs):
+    def __init__(self, session, **kwargs):
 
         self._store = []
-        self.host = host
+        self.session = session
         self.status = 'ok'
         self._keywords = kwargs
 
@@ -92,6 +93,10 @@ class ResponseStore(object):
             result['commands'].append(response.to_dict())
 
         return result
+
+    @property
+    def host(self):
+        return self.session.hostname
 
     def to_yaml(self):
         yaml = ['host: {}'.format(self.host)]
@@ -153,7 +158,7 @@ class ResponseStore(object):
         """adds a response item to the list"""
 
         if not isinstance(item, Response):
-            item = Response(*item)
+            item = Response(self, *item)
 
         if item.errored:
             self.status = 'failed'
