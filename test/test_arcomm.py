@@ -3,7 +3,7 @@ import arcomm
 import pytest
 import os
 import tempfile
-#from pprint import pprint
+from pprint import pprint
 
 NXHOST = 'bogus'
 ARCOMM_USER = os.environ.get('ARCOMM_USER', 'admin')
@@ -57,6 +57,9 @@ def test_execute_ok(protocol):
 def test_execute_sess():
     conn = arcomm.connect(HOST, creds=ARCOMM_CREDS)
     arcomm.execute(conn, 'show version')
+
+def test_encoding_text():
+    arcomm.execute(HOST, ['show version'], encoding="text")
 
 def test_bad_auth(protocol):
     with pytest.raises(arcomm.AuthenticationFailed):

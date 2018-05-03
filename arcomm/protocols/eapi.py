@@ -103,10 +103,7 @@ class Eapi(BaseProtocol):
             output = None
 
             if data:
-                if encoding == "text":
-                    output = data["output"]
-                else:
-                    output = data
+                output = data
 
                 if "errors" in data:
                     errored = True
