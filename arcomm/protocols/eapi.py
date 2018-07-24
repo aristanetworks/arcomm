@@ -10,7 +10,7 @@ from arcomm.exceptions import AuthenticationFailed, ConnectFailed, ExecuteFailed
 from arcomm.protocols.protocol import BaseProtocol
 from arcomm.util import zipnpad
 from arcomm.command import Command
-
+from pprint import pprint
 import eapi as eapi_
 
 eapi_.SSL_WARNINGS = False
@@ -88,6 +88,7 @@ class Eapi(BaseProtocol):
                                          encoding=encoding,
                                          timestamps=timestamps,
                                          timeout=timeout)
+
         except eapi_.EapiError as exc:
             raise ExecuteFailed(str(exc))
 
@@ -98,14 +99,13 @@ class Eapi(BaseProtocol):
         # else:
         #     result = data["result"]
 
-        for command, data in zipnpad(commands, response.output):
+        for command, output in zipnpad(commands, response.output):
+
             errored = None
-            output = None
+            #output = None
 
-            if data:
-                output = data
-
-                if "errors" in data:
+            if output:
+                if isinstance(output, dict) and "errors" in output:
                     errored = True
                 else:
                     errored = False
