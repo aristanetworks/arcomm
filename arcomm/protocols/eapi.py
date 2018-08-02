@@ -102,7 +102,7 @@ class Eapi(BaseProtocol):
         # else:
         #     result = data["result"]
 
-        for command, result in zipnpad(commands, response.result):
+        for result in response: #command, result in zipnpad(commands, response.result):
 
             errored = None
             #output = None
@@ -114,10 +114,7 @@ class Eapi(BaseProtocol):
                 else:
                     errored = False
 
-                if encoding == "text":
-                    result = result["output"]
-
-            results.append([command, result, errored])
+            results.append([result.command, result.output, errored])
 
         if len(results) > 1 and self._authorize:
             results.pop(0)
