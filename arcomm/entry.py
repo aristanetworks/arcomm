@@ -27,9 +27,6 @@ def main():
     arg("--protocol", help=("set the protocol. By default 'eapi' is used."),
         choices=["eapi", "eapi+https", "mock", "ssh"])
 
-    arg("--encoding", default="text", choices=["json", "text"],
-        help="control output formatting")
-
     arg("-u", "--username", default="admin",
         help="specifies the username on the switch")
 
@@ -58,8 +55,25 @@ def main():
     arg("--variables", help=("replacements for template variables in script "
                              "file (must be JSON formatted)"))
 
-    arg("--no-verify", action="store_true", help=("when using eAPI over HTTPS, "
-                                                  "don't verify certificate"))
+
+
+    ssh_group = parser.add_argument_group('SSH Options', '')
+    ssh_arg = ssh_group.add_argument
+
+    ssh_arg("--identity-file", help="specifies identity file")
+
+    eapi_group = parser.add_argument_group('eAPI Options', '')
+
+    eapi_arg = eapi_group.add_argument
+
+    eapi_arg("--encoding", default="text", choices=["json", "text"],
+             help="control output formatting")
+
+    eapi_arg("--no-verify", action="store_true",
+             help="when using eAPI over HTTPS, don't verify certificate")
+
+    eapi_arg("--private-key", help="specifies private key file")
+    eapi_arg("--certificate", help="specifies client certificate file")
 
     args = parser.parse_args()
 
