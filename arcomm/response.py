@@ -82,7 +82,6 @@ class ResponseStore(object):
         return self._store[item]
 
     def __str__(self):
-
         return self.to_yaml()
 
     def to_dict(self):
@@ -99,33 +98,33 @@ class ResponseStore(object):
         return self.session.hostname
 
     def to_yaml(self):
-        yaml = ['host: {}'.format(self.host)]
-        yaml.append('status: {}'.format(self.status))
-        yaml.append('commands:')
+        doc = ['host: {}'.format(self.host)]
+        doc.append('status: {}'.format(self.status))
+        doc.append('commands:')
 
         for r in self:
 
             if isinstance(r.command, arcomm.Command):
-                yaml.append('  - command: {}'.format(r.command.cmd))
+                doc.append('  - command: {}'.format(r.command.cmd))
                 if r.command.prompt:
-                    yaml.append('    prompt: {}'.format(r.command.prompt))
+                    doc.append('    prompt: {}'.format(r.command.prompt))
                 if r.command.answer:
-                    yaml.append('    answer: {}'.format(r.command.answer))
+                    doc.append('    answer: {}'.format(r.command.answer))
 
             else:
-                yaml.append('  - command: {}'.format(r.command))
+                doc.append('  - command: {}'.format(r.command))
 
             if r.errored is None:
                 errored = 'skipped'
             else:
                 errored = 'failed' if r.errored else 'ok'
 
-            yaml.append('    status: {}'.format(errored))
-            yaml.append('    output: |')
+            doc.append('    status: {}'.format(errored))
+            doc.append('    output: |')
 
-            yaml.append(indentblock(r.output, spaces=6))
+            doc.append(indentblock(str(r.output), spaces=6))
 
-        return '\n'.join(yaml)
+        return '\n'.join(doc)
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4, separators=(',', ': '))
