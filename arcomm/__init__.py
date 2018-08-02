@@ -5,8 +5,8 @@
 
 import sys
 
-__version_info__ = (2, 2, 16)
-__version__ = '2.2.16'
+__version_info__ = (2, 2, 17)
+__version__ = '2.2.17'
 
 if sys.version_info < (2, 7):
     raise RuntimeError('You need Python 2.7+ for arcomm.')
