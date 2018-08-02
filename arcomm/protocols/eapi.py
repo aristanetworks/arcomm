@@ -95,14 +95,7 @@ class Eapi(BaseProtocol):
         status_code = response.code
         status_message = response.message
 
-        # if "error" in data:
-        #     status_code = data["error"]["code"]
-        #     status_message = data["error"]["message"]
-        #     result = data["error"].get("data", [])
-        # else:
-        #     result = data["result"]
-
-        for result in response: #command, result in zipnpad(commands, response.result):
+        for command, result in zipnpad(commands, response.result):
 
             errored = None
             #output = None
@@ -114,7 +107,7 @@ class Eapi(BaseProtocol):
                 else:
                     errored = False
 
-            results.append([result.command, result.output, errored])
+            results.append([command, result.output, errored])
 
         if len(results) > 1 and self._authorize:
             results.pop(0)

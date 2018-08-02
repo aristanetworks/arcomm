@@ -104,7 +104,7 @@ class ResponseStore(object):
 
         for r in self:
 
-            if isinstance(r.command, arcomm.Command):
+            if isinstance(r.command, arcomm.command.Command):
                 doc.append('  - command: {}'.format(r.command.cmd))
                 if r.command.prompt:
                     doc.append('    prompt: {}'.format(r.command.prompt))
