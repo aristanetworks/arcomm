@@ -92,6 +92,9 @@ class Eapi(BaseProtocol):
         except eapi_.EapiError as exc:
             raise ExecuteFailed(str(exc))
 
+        status_code = response.code
+        status_message = response.message
+
         # if "error" in data:
         #     status_code = data["error"]["code"]
         #     status_message = data["error"]["message"]
@@ -99,18 +102,22 @@ class Eapi(BaseProtocol):
         # else:
         #     result = data["result"]
 
-        for command, output in zipnpad(commands, response.output):
+        for command, result in zipnpad(commands, response.result):
 
             errored = None
             #output = None
 
-            if output:
-                if isinstance(output, dict) and "errors" in output:
+            if result:
+                if isinstance(result, dict) and "errors" in result:
+                    unset(result["errors"])
                     errored = True
                 else:
                     errored = False
 
-            results.append([command, output, errored])
+                if encoding == "text":
+                    result = result["output"]
+
+            results.append([command, result, errored])
 
         if len(results) > 1 and self._authorize:
             results.pop(0)
