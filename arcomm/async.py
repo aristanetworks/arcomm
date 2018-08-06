@@ -11,9 +11,26 @@ def _prep_worker():
 
 def _worker(endpoint, commands, **kwargs):
 
-    #session = arcomm.Session(endpoint)
+    creds = None
+    protocol = None
+    authorize = None
+
+    if "creds" in kwargs:
+        creds = kwargs["creds"]
+        del(kwargs["creds"])
+
+    if "protocol" in kwargs:
+        protocol = kwargs["protocol"]
+        del(kwargs["protocol"])
+
+    if "authorize" in kwargs:
+        authorize = kwargs["authorize"]
+        del(kwargs["authorize"])
+
+    session = arcomm.Session(endpoint, creds=creds, protocol=protocol,
+                             authorize=authorize)
     try:
-        responses = arcomm.execute(endpoint, commands, **kwargs)
+        responses = session.execute(commands, **kwargs)
     except (arcomm.AuthenticationFailed, arcomm.AuthorizationFailed):
         # if we get kicked out of the session... we have to make our own
         # response object... :(
