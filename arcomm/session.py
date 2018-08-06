@@ -162,7 +162,8 @@ class Session(object):
 
     send = execute
 
-    def execute_until(self, commands, condition, timeout, sleep=1, exclude=False, **kwargs):
+    def execute_until(self, commands, condition, timeout, sleep=1,
+                      exclude=False, **kwargs):
         """Runs a command until a condition has been met or the timeout
         (in seconds) is exceeded. If 'exclude' is set this function will return
         only if the string is _not_ present"""
