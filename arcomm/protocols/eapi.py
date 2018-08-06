@@ -96,18 +96,15 @@ class Eapi(BaseProtocol):
         status_message = response.message
 
         for command, result in zipnpad(commands, response.result):
-
             errored = None
-            #output = None
 
             if result:
-                if isinstance(result, dict) and "errors" in result:
-                    unset(result["errors"])
+                if "errors" in result.dict:
                     errored = True
                 else:
                     errored = False
 
-            results.append([command, result.output, errored])
+            results.append([command, result.text, errored])
 
         if len(results) > 1 and self._authorize:
             results.pop(0)
