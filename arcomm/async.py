@@ -11,9 +11,9 @@ def _prep_worker():
 
 def _worker(endpoint, commands, **kwargs):
 
-    session = arcomm.Session(endpoint)
+    #session = arcomm.Session(endpoint)
     try:
-        responses = session.execute(commands, **kwargs)
+        responses = arcomm.execute(endpoint, commands, **kwargs)
     except (arcomm.AuthenticationFailed, arcomm.AuthorizationFailed):
         # if we get kicked out of the session... we have to make our own
         # response object... :(
@@ -95,6 +95,7 @@ class Pool:
 
         params = kwargs.copy()
         params.update(self._session_defaults)
+
         self._sessions.append((endpoint, params))
 
     def start(self):
