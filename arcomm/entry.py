@@ -30,7 +30,7 @@ def main():
     arg("-u", "--username", default="admin",
         help="specifies the username on the switch")
 
-    arg("-p", "--password", default="", help="specifies users password")
+    arg("-p", "--password", default=None, help="specifies users password")
 
     arg("--no-password", action="store_true",
         help="specifies no password required for user")
@@ -111,7 +111,7 @@ def main():
             secrets = yaml.load(stream)
             password = secrets.get(username)
 
-    if not password:
+    if password is None:
         password = getpass.getpass("password for {}: ".format(username))
 
     options['creds'] = arcomm.BasicCreds(args.username, password)
